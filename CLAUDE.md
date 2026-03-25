@@ -52,7 +52,7 @@ Run `/simplify` on the changed files.
 
 ### Phase 2.5: Security Review (conditional)
 
-If changes touch security-sensitive areas (auth, crypto, input validation, permissions, secrets handling, network boundaries, etc.), run the `security-researcher` subagent via the Agent tool before proceeding to Phase 3.
+If changes touch security-sensitive areas (auth, crypto, input validation, permissions, secrets handling, network boundaries, etc.), run the `security-researcher` subagent via the Agent tool before proceeding to Phase 3. Scope the review to the current changes only (or as specifically directed) — not a generic full-codebase audit.
 
 ### Phase 3: Final Gating Loop
 
