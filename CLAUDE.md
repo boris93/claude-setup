@@ -9,11 +9,18 @@
 
 When creating a plan in plan mode, before presenting it to the user for approval:
 
-1. **Submit to `rfc-reviewer`** — Use the `rfc-reviewer` subagent via the Task tool to review the plan.
-2. **Fix any issues** — If the reviewer surfaces blocking issues or concerns, address them in the plan.
-3. **Re-review holistically** — After fixes, re-submit the *entire* plan (not just the fixes) to `rfc-reviewer` for a fresh holistic review.
-4. **Iterate until clean** — Repeat steps 2–3 until no blocking issues remain.
-5. **Then present to user** — Only use ExitPlanMode once the plan has passed rfc-reviewer review.
+1. **Submit to both reviewers in parallel** — Use the Task tool to launch both `rfc-reviewer` and `rfc-red-team` simultaneously. Each reviewer operates independently (the red-team does NOT receive the rfc-reviewer's output — this prevents anchoring bias).
+2. **Synthesize findings** — When both reviews complete, produce a unified synthesis:
+   - *Convergent findings* (both reviewers flag the same concern): High confidence — keep as a single entry, note the convergence.
+   - *Complementary findings* (different reviewers find different issues): Both valid, address both.
+   - *Severity conflicts* (same concern, different severity): Present both assessments with reasoning to the user — do not unilaterally resolve.
+   - *Malformed red-team findings* (lack a concrete scenario): Discard the finding. If all red-team findings are malformed, treat it as a reviewer failure and apply the single-reviewer fallback (step 6).
+   - Present as a single unified synthesis grouped by: Blocking, Significant/Acknowledged (with source attribution), Strengths.
+3. **Fix any issues** — Address all blocking issues and red flags from either reviewer.
+4. **Re-review holistically** — After fixes, re-submit the *entire* plan (not just the fixes) to both reviewers in parallel.
+5. **Iterate until clean** — Repeat steps 2–4 until no blocking issues or red flags remain from either reviewer. **Max 3 dual-reviewer iterations.** After 3 passes, present remaining findings to the user for judgment rather than continuing to loop.
+6. **Single-reviewer fallback** — If one reviewer fails (timeout, error, empty output), proceed with the other's findings and note the failure. Do not block the entire flow on a single reviewer.
+7. **Then present to user** — Use ExitPlanMode once the plan has passed both reviews (or the available reviewer, if one failed per step 6, or after the iteration cap per step 5). Include the unified synthesis showing: resolved issues, acknowledged risks, and final verdicts. When verdicts are clean, keep the presentation brief.
 
 ## Code Review Flow
 
