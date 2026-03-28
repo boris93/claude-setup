@@ -26,23 +26,16 @@ When creating a plan in plan mode, before presenting it to the user for approval
 
 After implementing changes, follow this multi-reviewer convergence process. Each phase loops until feedback reaches marginal utility.
 
-**Timeout policy:** All review sub-tasks must run without timeouts. Bash-based reviewers (Gemini, Codex) must use `run_in_background: true` so they are not subject to the Bash tool's default timeout. Task-based reviewers (`code-review-analyst`) must not set `max_turns`, allowing them to run to natural completion. **Wait for completion:** Always wait for background commands to fully terminate (via notification) before reading output with `TaskOutput`. Never assume a background task has failed while it is still running.
+**Timeout policy:** All review sub-tasks must run without timeouts. Bash-based reviewers (Codex) must use `run_in_background: true` so they are not subject to the Bash tool's default timeout. Task-based reviewers (`code-review-analyst`) must not set `max_turns`, allowing them to run to natural completion. **Wait for completion:** Always wait for background commands to fully terminate (via notification) before reading output with `TaskOutput`. Never assume a background task has failed while it is still running.
 
 **Deferred findings policy:** Valid findings that fall outside the scope of the current change (pre-existing tech debt, broader architectural issues, etc.) must not be silently dropped. After Phase 3 converges, batch all such findings into a single `deferred_`-prefixed memory entry. Include the finding in the review synthesis under a "Deferred for later" heading so the user is aware. This policy does not override Phase 3b — P1/critical findings in the current diff must still be fixed before committing; only out-of-scope, non-blocking findings are deferred.
 
 ### Phase 1: Parallel Review Loop
 
-**1a. Trigger all reviewers simultaneously:**
+**1a. Trigger reviewer:**
 
 **code-review-analyst** (Task agent):
 - Use the `code-review-analyst` subagent via the Task tool (no `max_turns` limit)
-
-**Gemini** (run in background):
-```bash
-gemini -y -p "/review uncommitted changes"
-OR
-gemini -y -p "/review <optional custom instruction>"
-```
 
 **1b. Synthesize and fix:**
 - Evaluate validity of each finding
