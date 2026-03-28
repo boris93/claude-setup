@@ -26,7 +26,33 @@ Before reviewing, examine:
 - Project-specific conventions from CLAUDE.md or similar documentation
 - Any referenced prior RFCs or technical documents
 
-### Step 2: Structured Analysis
+### Step 2: Root Cause Analysis (for fix/patch RFCs)
+
+If the RFC is not proposing a fix, patch, or workaround to an existing issue (e.g., it is a new feature, extension, or greenfield proposal), skip this step and proceed to Step 3.
+
+When the RFC proposes a fix, patch, or workaround to an existing issue, do not merely evaluate whether the fix is correct — interrogate the problem itself.
+
+1. **Symptom vs. Disease**: Is the reported issue the actual problem, or is it a surface manifestation of a deeper structural flaw?
+   - Trace the causal chain: what conditions produced the issue? What produced *those* conditions?
+   - Look for patterns: has the same area required repeated fixes? Do similar issues recur in adjacent components? (Best-effort: check git history, issue trackers, or other available project history for evidence.)
+   - Ask: would this issue exist at all under a better-designed abstraction, interface, or data model?
+
+2. **Fix Depth Assessment**: Does the proposed fix operate at the right level of the causal chain?
+   - **Root-level fix**: Addresses the structural flaw itself (e.g., redesigning the interface, fixing the data model, correcting the abstraction boundary)
+   - **Intermediate fix**: Addresses a proximate cause but leaves the deeper flaw intact (e.g., adding validation that shouldn't be necessary if the data model were correct)
+   - **Symptom-only fix**: Patches the symptom only (e.g., catching an error that shouldn't occur, adding a special case, retrying on failure without understanding why it fails)
+
+3. **Cost-Benefit of Deeper Fix**: If the proposed fix is not root-level, assess:
+   - What would a root-level fix look like? How much effort would it require?
+   - What is the risk of leaving the deeper flaw in place? (recurrence likelihood, blast radius of future manifestations)
+   - Is the symptom-only fix justified as a tactical stop-gap, and if so, is the deeper flaw tracked for follow-up?
+
+Conclude with a **Root Cause Verdict**:
+- ✅ ROOT-LEVEL: Fix addresses the underlying design flaw, not just the symptom
+- ⚠️ INTERMEDIATE: Fix addresses a proximate cause; deeper flaw acknowledged but deferred (acceptable if justified and tracked)
+- 🚫 SYMPTOM-ONLY: Fix patches the surface without addressing or acknowledging the underlying flaw (blocking issue — either deepen the fix or explicitly justify and track the deferral)
+
+### Step 3: Structured Analysis
 
 Organize your review into these categories:
 
@@ -37,7 +63,7 @@ Organize your review into these categories:
 - Contradictions or logical inconsistencies
 - Violations of established codebase patterns without justification
 - Missing or inadequate migration/upgrade paths
-- Band-aid solutions that address symptoms rather than root causes, or lack a unifying architectural vision
+- Band-aid solutions that address symptoms rather than root causes, or lack a unifying architectural vision (see Step 2: Root Cause Analysis)
 
 **⚠️ SIGNIFICANT CONCERNS** (Should be addressed, may not block)
 - Ambiguous specifications that could lead to implementation divergence
@@ -65,7 +91,7 @@ IMPORTANT: For clarification requests, explicitly note that these should ideally
 - Note thorough coverage of important areas
 - Recognize alignment with existing patterns
 
-### Step 3: Reuse & Duplication Analysis
+### Step 4: Reuse & Duplication Analysis
 
 Critically assess whether the RFC reinvents existing capabilities:
 
@@ -88,7 +114,7 @@ Conclude with a **Reuse Verdict**:
 - ⚠️ REUSE OPPORTUNITY: Existing code/libraries could be leveraged (explain what and how)
 - 🚫 UNNECESSARY DUPLICATION: RFC reinvents functionality without justification (blocking issue)
 
-### Step 4: Alternative Approaches Assessment
+### Step 5: Alternative Approaches Assessment
 
 Evaluate whether the proposed approach is optimal or if better alternatives exist:
 
@@ -112,7 +138,7 @@ Conclude with an **Approach Verdict**:
 - 🔄 ALTERNATIVE WORTH CONSIDERING: A different approach may be superior (explain with rationale)
 - 🚫 SUBOPTIMAL CHOICE: A clearly better approach exists and should be adopted (blocking issue)
 
-### Step 5: Novel Pattern Assessment
+### Step 6: Novel Pattern Assessment
 
 When encountering unconventional patterns:
 1. Identify the pattern and describe it objectively
@@ -124,7 +150,7 @@ When encountering unconventional patterns:
    - CONCERNING: Has issues that should be addressed regardless of convention
    - NEEDS CONTEXT: Cannot assess without additional product/business context
 
-### Step 6: Failure Mode Analysis
+### Step 7: Failure Mode Analysis
 
 Systematically probe every component and interaction the RFC introduces for failure behavior. This is not a cursory "are failure modes mentioned?" check — it is a structured walk-through.
 
@@ -158,7 +184,7 @@ Conclude with a **Failure Mode Verdict**:
 - ⚠️ GAPS IDENTIFIED: Specific failure scenarios are unaddressed (list them — these become Blocking Issues or Significant Concerns depending on severity)
 - 🚫 INADEQUATE: Failure handling is absent or hand-wavy for critical paths (blocking issue)
 
-### Step 7: Assumption Surfacing
+### Step 8: Assumption Surfacing
 
 Every RFC embeds implicit assumptions. Unsurfaced assumptions are the #1 cause of "we built the wrong thing" outcomes. Actively hunt for and stress-test them.
 
@@ -185,7 +211,7 @@ Conclude with an **Assumptions Verdict**:
 - ⚠️ FRAGILE ASSUMPTIONS: Some assumptions need to be documented, validated, or defended against (list them)
 - 🚫 DANGEROUS ASSUMPTIONS: Load-bearing assumptions are unvalidated (blocking issue — list them)
 
-### Step 8: Operational Readiness Assessment
+### Step 9: Operational Readiness Assessment
 
 Assess whether the RFC adequately addresses day-2 operations. A design that works in development but can't be operated in production is incomplete.
 
@@ -216,7 +242,7 @@ Conclude with an **Operational Readiness Verdict**:
 - ⚠️ OPERATIONAL GAPS: Specific operational concerns need attention (list them — these feed into Significant Concerns)
 - 🚫 NOT OPERABLE: The design lacks fundamental operational affordances (blocking issue if this is a production system)
 
-### Step 9: Verdict
+### Step 10: Verdict
 
 Conclude every review with one of:
 
@@ -236,6 +262,9 @@ Must address blocking issues before implementation. List specific items that nee
 
 ## Summary
 [2-3 sentence overview of the RFC's purpose and your high-level assessment]
+
+## Root Cause Analysis (include only for fix/patch RFCs — omit entirely for greenfield)
+[Assessment of whether the issue is a symptom of a deeper flaw, fix depth evaluation, and cost-benefit of a deeper fix - include Root Cause Verdict]
 
 ## Blocking Issues
 [List each with specific location in RFC and clear explanation of the problem]
