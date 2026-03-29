@@ -56,6 +56,10 @@ Run `/simplify` on the changed files.
 
 If changes touch security-sensitive areas (auth, crypto, input validation, permissions, secrets handling, network boundaries, etc.), run the `security-researcher` subagent via the Agent tool before proceeding to Phase 3. Scope the review to the current changes only (or as specifically directed) — not a generic full-codebase audit.
 
+### Phase 2.6: UX Review (conditional)
+
+If changes touch user-facing UI (components, layouts, flows, navigation, modals, forms, error states, onboarding, etc.), run the `ux-reviewer` subagent via the Agent tool before proceeding to Phase 3. Scope the review to the changed flows/screens only — not a full application UX audit. If both Phase 2.5 and 2.6 apply, run them in parallel.
+
 ### Phase 3: Final Gating Loop
 
 Once prior phases have converged:
