@@ -26,7 +26,7 @@ When creating a plan in plan mode, before presenting it to the user for approval
 
 After implementing changes, follow this multi-reviewer convergence process. Each phase loops until feedback reaches marginal utility.
 
-**Timeout policy:** All review sub-tasks must run without timeouts. Bash-based reviewers (Codex) must use `run_in_background: true` so they are not subject to the Bash tool's default timeout. Task-based reviewers (`code-review-analyst`) must not set `max_turns`, allowing them to run to natural completion. **Wait for completion:** Always wait for background commands to fully terminate (via notification) before reading output with `TaskOutput`. Never assume a background task has failed while it is still running.
+**Timeout policy:** All review sub-tasks must run without timeouts. Bash-based reviewers (Codex, Claude CLI fallback) must use `run_in_background: true` so they are not subject to the Bash tool's default timeout. Task-based reviewers (`code-review-analyst`) must not set `max_turns`, allowing them to run to natural completion. **Wait for completion:** Always wait for background commands to fully terminate (via notification) before reading output with `TaskOutput`. Never assume a background task has failed while it is still running.
 
 **Deferred findings policy:** Valid findings that fall outside the scope of the current change (pre-existing tech debt, broader architectural issues, etc.) must not be silently dropped. After Phase 3 converges, batch all such findings into a single `deferred_`-prefixed memory entry. Include the finding in the review synthesis under a "Deferred for later" heading so the user is aware. This policy does not override Phase 3b — P1/critical findings in the current diff must still be fixed before committing; only out-of-scope, non-blocking findings are deferred.
 
@@ -68,7 +68,20 @@ Once prior phases have converged:
 ```bash
 codex -s danger-full-access -c model_reasoning_effort="xhigh" -m "gpt-5.4" review --uncommitted
 ```
-**Fallback:** Only trigger after Codex has fully terminated. If Codex fails (non-zero exit, rate limits, errors, etc.), run the gating review via the `code-review-analyst` subagent (Task tool, no `max_turns` limit) instead. Do not fall back while Codex is still running.
+**Fallback:** Only trigger after Codex has fully terminated. If Codex fails (non-zero exit, rate limits, errors, etc.), run the fallback gating review via Claude CLI instead (run in background):
+```bash
+claude --dangerously-skip-permissions --effort max -p "$(cat <<'REVIEW_EOF'
+Review the uncommitted changes in this repository. Begin by running `git diff HEAD` for all staged and unstaged changes to tracked files, and `git ls-files --others --exclude-standard` to list new untracked files. Read any new files in full. Review only these changes.
+
+Classify every finding as P1 (must fix -- correctness bug, security flaw, data loss risk) or P2 (informational -- style, minor improvement). Be skeptical: if you are unsure whether something is a real bug, verify by reading the surrounding code before reporting it.
+
+For each finding, state: file:line, severity, what is wrong, and a concrete fix.
+
+Output nothing if the diff is clean. Do not comment on style, naming, or formatting unless it introduces a bug.
+REVIEW_EOF
+)"
+```
+Do not fall back while Codex is still running.
 
 **3b. Address critical findings.** If any P1 (critical/high-severity) issues are found, fix them and re-run from 3a.
 
