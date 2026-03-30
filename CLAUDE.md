@@ -9,18 +9,20 @@
 
 When creating a plan in plan mode, before presenting it to the user for approval:
 
-1. **Submit to both reviewers in parallel** — Use the Task tool to launch both `rfc-reviewer` and `rfc-red-team` simultaneously. Each reviewer operates independently (the red-team does NOT receive the rfc-reviewer's output — this prevents anchoring bias).
-2. **Synthesize findings** — When both reviews complete, produce a unified synthesis:
-   - *Convergent findings* (both reviewers flag the same concern): High confidence — keep as a single entry, note the convergence.
+1. **Submit to reviewers in parallel:**
+   - **Always:** Launch `rfc-reviewer` and `rfc-red-team` via the Task tool simultaneously. Each reviewer operates independently (the red-team does NOT receive the rfc-reviewer's output — this prevents anchoring bias).
+   - **Conditional (UI/UX plans):** If the plan touches UI/UX layers (components, layouts, flows, navigation, user-facing behavior, etc.), also launch `ux-reviewer` via the Agent tool in the same parallel batch.
+2. **Synthesize findings** — When all reviews complete, produce a unified synthesis:
+   - *Convergent findings* (multiple reviewers flag the same concern): High confidence — keep as a single entry, note the convergence.
    - *Complementary findings* (different reviewers find different issues): Both valid, address both.
    - *Severity conflicts* (same concern, different severity): Present both assessments with reasoning to the user — do not unilaterally resolve.
-   - *Malformed red-team findings* (lack a concrete scenario): Discard the finding. If all red-team findings are malformed, treat it as a reviewer failure and apply the single-reviewer fallback (step 6).
+   - *Malformed findings* (any reviewer produces findings lacking actionable specificity — e.g., red-team findings without a concrete scenario, UX findings without a concrete suggestion): Discard the finding. If all findings from a reviewer are malformed, treat it as a reviewer failure and apply the fallback (step 6).
    - Present as a single unified synthesis grouped by: Blocking, Significant/Acknowledged (with source attribution), Strengths.
-3. **Fix any issues** — Address all blocking issues and red flags from either reviewer.
-4. **Re-review holistically** — After fixes, re-submit the *entire* plan (not just the fixes) to both reviewers in parallel.
-5. **Iterate until clean** — Repeat steps 2–4 until no blocking issues or red flags remain from either reviewer. **Max 3 dual-reviewer iterations.** After 3 passes, present remaining findings to the user for judgment rather than continuing to loop.
-6. **Single-reviewer fallback** — If one reviewer fails (timeout, error, empty output), proceed with the other's findings and note the failure. Do not block the entire flow on a single reviewer.
-7. **Then present to user** — Use ExitPlanMode once the plan has passed both reviews (or the available reviewer, if one failed per step 6, or after the iteration cap per step 5). Include the unified synthesis showing: resolved issues, acknowledged risks, and final verdicts. When verdicts are clean, keep the presentation brief.
+3. **Fix any issues** — Address all blocking issues and red flags from any reviewer.
+4. **Re-review holistically** — After fixes, re-submit the *entire* plan (not just the fixes) to all applicable reviewers in parallel.
+5. **Iterate until clean** — Repeat steps 2–4 until no blocking issues or red flags remain from any reviewer. **Max 3 iterations.** After 3 passes, present remaining findings to the user for judgment rather than continuing to loop.
+6. **Reviewer fallback** — If any reviewer fails (timeout, error, empty output), proceed with the remaining reviewers' findings and note the failure. Do not block the flow on a single reviewer's failure.
+7. **Then present to user** — Use ExitPlanMode once the plan has passed all applicable reviews (or the available reviewers, if any failed per step 6, or after the iteration cap per step 5). Include the unified synthesis showing: resolved issues, acknowledged risks, and final verdicts. When verdicts are clean, keep the presentation brief.
 
 ## Code Review Flow
 
