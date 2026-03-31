@@ -70,13 +70,16 @@ Once prior phases have converged:
 ```bash
 codex -s danger-full-access -c model_reasoning_effort="xhigh" -m "gpt-5.4" review --uncommitted
 ```
-**Fallback:** Only trigger after Codex has fully terminated. If Codex fails (non-zero exit, rate limits, errors, etc.), run the fallback gating review via Claude CLI instead (run in background):
+**Fallback:** Only trigger after Codex has fully terminated — do not trigger while Codex is still running. If Codex fails (non-zero exit, rate limits, errors, etc.), run the Claude CLI fallback instead — both steps in parallel:
+
+**Fallback step 1.** Run the gating review prompt (run in background):
 ```bash
 claude --dangerously-skip-permissions --effort max -p "$(cat ~/.claude/sidekick-prompts/gating-review.md)"
 ```
-Do not fall back while Codex is still running.
 
-**3b. Address critical findings.** If any P1 (critical/high-severity) issues are found, fix them and re-run from 3a.
+**Fallback step 2.** Launch `code-review-analyst` via the Agent tool with an adversarial P1-hunting framing: *"I know there is at least 1 hidden P1 in the uncommitted changes — your job is to find it. If after thorough investigation you determine no P1 exists, state that explicitly with your reasoning."*
+
+**3b. Address critical findings.** If any P1 (critical/high-severity) issues are found, fix them and re-run. On the Codex path, re-run from 3a. On the Claude CLI fallback path, re-run from fallback step 1 (do not retry Codex).
 
 **3c. Exit condition:** Stop when the gating review surfaces no P1 findings. P2 and P3 findings do not block. State to the user why you're exiting (e.g., "gating review clean — only informational notes remain").
 
