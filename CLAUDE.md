@@ -72,22 +72,13 @@ codex -s danger-full-access -c model_reasoning_effort="xhigh" -m "gpt-5.4" revie
 ```
 **Fallback:** Only trigger after Codex has fully terminated. If Codex fails (non-zero exit, rate limits, errors, etc.), run the fallback gating review via Claude CLI instead (run in background):
 ```bash
-claude --dangerously-skip-permissions --effort max -p "$(cat <<'REVIEW_EOF'
-Review the uncommitted changes in this repository. Begin by running `git diff HEAD` for all staged and unstaged changes to tracked files, and `git ls-files --others --exclude-standard` to list new untracked files. Read any new files in full. Review only these changes.
-
-Classify every finding as P1 (must fix -- correctness bug, security flaw, data loss risk) or P2 (informational -- style, minor improvement). Be skeptical: if you are unsure whether something is a real bug, verify by reading the surrounding code before reporting it.
-
-For each finding, state: file:line, severity, what is wrong, and a concrete fix.
-
-Output nothing if the diff is clean. Do not comment on style, naming, or formatting unless it introduces a bug.
-REVIEW_EOF
-)"
+claude --dangerously-skip-permissions --effort max -p "$(cat ~/.claude/sidekick-prompts/gating-review.md)"
 ```
 Do not fall back while Codex is still running.
 
 **3b. Address critical findings.** If any P1 (critical/high-severity) issues are found, fix them and re-run from 3a.
 
-**3c. Exit condition:** Stop when the gating review surfaces no critical or high-severity findings. Minor/informational findings do not block. State to the user why you're exiting (e.g., "gating review clean — only informational notes remain").
+**3c. Exit condition:** Stop when the gating review surfaces no P1 findings. P2 and P3 findings do not block. State to the user why you're exiting (e.g., "gating review clean — only informational notes remain").
 
 Proceed to commit/PR only after Phase 3 converges.
 
