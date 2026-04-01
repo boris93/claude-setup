@@ -83,7 +83,25 @@ claude --dangerously-skip-permissions --effort max -p "$(cat ~/.claude/sidekick-
 
 **3c. Exit condition:** Stop when the gating review surfaces no P1 findings. P2 and P3 findings do not block. State to the user why you're exiting (e.g., "gating review clean — only informational notes remain").
 
-Proceed to commit/PR only after Phase 3 converges.
+### Phase 4: Root-Cause Synthesis
+
+**Skip condition:** If no P1s were found during Phases 1–3, skip this phase entirely.
+
+After Phase 3 converges with no remaining P1s, review all P1 findings that were discovered and fixed across Phases 1–3. The goal is not to find new bugs — it's to identify the underlying design flaw(s) whose symptoms those P1s were.
+
+1. **Collect** — List every P1 that was surfaced during the review (across all phases and reviewers), along with the fix applied.
+2. **Cluster** — Group P1s that share a common root cause (e.g., multiple boundary-check failures may trace to an inconsistent validation model; several concurrency bugs may stem from a missing ownership invariant).
+3. **Diagnose** — For each cluster, name the design-level flaw. Ask: "What structural decision made this class of bug possible?" This is not about individual lines of code — it's about the shape of the abstraction, data model, or control flow that invited the errors.
+4. **Assess** — Determine whether the fixes applied are symptomatic patches or whether they actually resolve the design flaw. If any cluster's root cause is still latent (fixes addressed symptoms but the flaw remains), flag it as a blocking concern.
+5. **Act:**
+   - If a latent design flaw is found and fixable in this change: fix it and re-run Phase 3.
+   - If the fix is too large for this change: extract it as a blocking follow-up task — distinct from deferred findings, these require explicit user acknowledgment before proceeding. No Phase 3 re-run needed (no code changed).
+   - If all root causes are resolved or pre-existing (not materially worsened by this change): proceed.
+   - Present the root-cause synthesis in the review output shown to the user, grouped by cluster.
+
+**Iteration cap:** Max 1 re-entry to Phase 3 from Phase 4. If the second Phase 3 pass yields findings that Phase 4 again flags as latent, escalate to the user rather than continuing to loop.
+
+Proceed to commit/PR only after Phase 4 completes (or is skipped).
 
 ## Feedback Processing — Double-Loop Learning
 
