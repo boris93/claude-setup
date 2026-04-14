@@ -184,7 +184,41 @@ Conclude with a **Failure Mode Verdict**:
 - ⚠️ GAPS IDENTIFIED: Specific failure scenarios are unaddressed (list them — these become Blocking Issues or Significant Concerns depending on severity)
 - 🚫 INADEQUATE: Failure handling is absent or hand-wavy for critical paths (blocking issue)
 
-### Step 8: Assumption Surfacing
+### Step 8: Decision Surface Audit
+
+Every RFC introduces new state, behavior, or invariants that get read or composed at multiple call sites. Where Step 7 asks *what could fail at known sites*, Step 8 asks *which sites are unspecified, or whose required behavior is implicit*. The most common cause of plans-that-shipped-with-P1s is not architectural error but **implicit decisions** — call sites the RFC didn't enumerate, where the implementer is forced to pick a default in-the-moment under "locally clean" bias. Hunt for two specific failure modes:
+
+1. **Composition blindness** — The RFC introduces new state/invariant/permission/error type/lifecycle phase but does not audit how it composes with existing invariants at every site that reads it. Each unaudited composition is a latent bug.
+
+2. **Default-by-omission** — The RFC describes the new code but not the call sites that read it. Each unsurfaced site forces the implementer to choose a default (fail-open vs. fail-closed, retry vs. abort, propagate vs. swallow). "Operationally clean" is the wrong prior in fail-closed, recovery, or safety-critical contexts.
+
+Process:
+
+1. **Enumerate the surface area independently.** Build a list of every site that will read, write, check, or compose with the new behavior — without trusting the RFC's enumeration. The method depends on whether the new symbol already exists in the codebase:
+   - *RFC modifies an existing symbol/API/type:* Grep for the existing symbol to find its call sites. Scope the search to the modules/packages the RFC touches plus their direct importers — if the true surface is larger than that bound, the unbounded surface is itself a finding worth raising.
+   - *RFC introduces a new symbol* (new error type, new lifecycle state, new permission, new field, new API): Grep on the new symbol returns nothing because the symbol does not yet exist. Instead, walk the **Sibling Shapes** list below and ask which shapes apply to this RFC; for each applicable shape, enumerate the *categories* of sites that will need to handle the new symbol (every catch site, every transition, every check site, etc.). Then Grep on the *anchor* — the existing function, state machine, API, or subsystem the new symbol attaches to — to populate each category from the existing codebase.
+
+   In both modes, the gap between the RFC's enumeration and yours *is* the finding.
+2. **For each site, ask:**
+   - Does the RFC explicitly state the required behavior at this site?
+   - If the new state could be missing/ambiguous/in-flight, does the RFC name the fail-direction?
+   - Does the RFC name which existing invariants at this site the new behavior must not break?
+3. **Sibling shapes to check** (same failure mode, different surface) — apply the same audit when the RFC introduces:
+   - New error types → every catch site
+   - New permissions → every check site
+   - New lifecycle states → every transition
+   - Default value changes → every site that relied on the old default
+   - New fields in serialized types → every reader/writer
+   - Tightened invariants → every site that previously satisfied the loose version
+   - Shared-utility refactors → every caller
+   - Sync→async conversions → every caller's error/cancellation handling
+
+Conclude with a **Decision Surface Verdict**:
+- ✅ EXPLICIT: Every call site touched by the change has named, intentional behavior in the RFC
+- ⚠️ PARTIAL: Most sites are covered, but specific sites lack explicit decisions (list them — these become Significant Concerns or Blocking Issues depending on safety profile)
+- 🚫 IMPLICIT: The RFC describes new behavior but does not enumerate the call sites reading it; the implementer will pick defaults in-the-moment (blocking issue)
+
+### Step 9: Assumption Surfacing
 
 Every RFC embeds implicit assumptions. Unsurfaced assumptions are the #1 cause of "we built the wrong thing" outcomes. Actively hunt for and stress-test them.
 
@@ -211,7 +245,7 @@ Conclude with an **Assumptions Verdict**:
 - ⚠️ FRAGILE ASSUMPTIONS: Some assumptions need to be documented, validated, or defended against (list them)
 - 🚫 DANGEROUS ASSUMPTIONS: Load-bearing assumptions are unvalidated (blocking issue — list them)
 
-### Step 9: Operational Readiness Assessment
+### Step 10: Operational Readiness Assessment
 
 Assess whether the RFC adequately addresses day-2 operations. A design that works in development but can't be operated in production is incomplete.
 
@@ -242,7 +276,7 @@ Conclude with an **Operational Readiness Verdict**:
 - ⚠️ OPERATIONAL GAPS: Specific operational concerns need attention (list them — these feed into Significant Concerns)
 - 🚫 NOT OPERABLE: The design lacks fundamental operational affordances (blocking issue if this is a production system)
 
-### Step 10: Verdict
+### Step 11: Verdict
 
 Conclude every review with one of:
 
@@ -292,6 +326,9 @@ Must address blocking issues before implementation. List specific items that nee
 
 ## Failure Mode Analysis
 [Systematic walk-through of failure scenarios, blast radius, and recovery paths - include Failure Mode Verdict]
+
+## Decision Surface Audit
+[Independent inventory of every call site touched by the change, with an audit of whether the RFC names explicit behavior at each site - include Decision Surface Verdict]
 
 ## Assumption Surfacing
 [Enumeration and stress-testing of implicit assumptions - include Assumptions Verdict]

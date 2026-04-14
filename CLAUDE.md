@@ -17,6 +17,34 @@ This applies to implementation decisions. It does not bypass review processes, s
 - Should be succinct
 - **Never commit without completing the full Code Review Flow first.** If the user asks to commit, run the review process before creating the commit.
 
+## Plan Construction
+
+A plan converts implicit decisions into explicit ones *before* code is written. Bugs cluster where a plan left a decision implicit and the implementer chose a "locally clean" default that composed into globally wrong behavior. Architectural correctness at the top level (which file, struct, lock pattern) is necessary but not sufficient — the bugs live at the call sites the plan didn't enumerate.
+
+**Two failure modes to hunt for and name explicitly while planning:**
+
+1. **Composition blindness** — Introducing new state, invariant, permission, error type, or lifecycle phase without auditing how it composes with existing invariants at every site that reads it. Each unaudited composition is a latent bug.
+
+2. **Default-by-omission** — Describing the new code but not the call sites that read it. Each unsurfaced site forces the implementer to choose a default (fail-open vs. fail-closed, retry vs. abort, propagate vs. swallow). "Operationally clean" is the wrong prior in fail-closed, recovery, or safety-critical contexts.
+
+**Sibling shapes** (same failure mode, different surface):
+- New error types → every catch site
+- New permissions → every check site
+- New lifecycle states → every transition
+- Default value changes → every site that relied on the old default
+- New fields in serialized types → every reader/writer
+- Tightened invariants → every site that previously satisfied the loose version
+- Shared-utility refactors → every caller
+- Sync→async conversions → every caller's error/cancellation handling
+
+**Plan completeness test** — size the plan to the *surface area of change*, not the volume of new code. A 100-line addition that introduces state read in 12 places is a 12-decision plan, not a 100-line plan. Before exiting plan mode, answer in this order:
+
+1. *What is the surface area of this change — every site that will read, write, or compose with the new behavior?*
+2. *At each of those sites, have I named the required behavior?* (catches default-by-omission)
+3. *At each of those sites, what existing invariants must the new behavior preserve, and have I verified each one holds?* (catches composition blindness)
+
+Q1 produces the site list; Q2 and Q3 audit each site against the two failure modes. If you can't answer all three off the top of your head, the plan is not done — regardless of how clean its top-level architecture looks.
+
 ## Plan Review Flow
 
 When creating a plan in plan mode, before presenting it to the user for approval:
