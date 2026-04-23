@@ -42,22 +42,16 @@ See `vocabulary.md` for the full decomposition and how to decide where a new rul
 
 ## Usage
 
-Symlink into your `~/.claude` directory so Claude Code picks up the global config:
+Clone and run the installer from the repo root:
 
 ```bash
-mkdir -p ~/.claude
-ln -sf /path/to/claude-setup/CLAUDE.md ~/.claude/CLAUDE.md
-ln -sf /path/to/claude-setup/vocabulary.md ~/.claude/vocabulary.md
-ln -sfn /path/to/claude-setup/agents ~/.claude/agents
-ln -sfn /path/to/claude-setup/contracts ~/.claude/contracts
-ln -sfn /path/to/claude-setup/policies ~/.claude/policies
-ln -sfn /path/to/claude-setup/playbooks ~/.claude/playbooks
-ln -sfn /path/to/claude-setup/sidekick-prompts ~/.claude/sidekick-prompts
+git clone https://github.com/<you>/claude-setup.git ~/projects/claude-setup
+~/projects/claude-setup/install.sh
 ```
 
-The `contracts`, `policies`, `playbooks`, and `vocabulary.md` symlinks are required so CLAUDE.md's `@`-imports resolve regardless of whether Claude Code loads CLAUDE.md via the symlink path or the real path.
+The installer symlinks `CLAUDE.md`, `vocabulary.md`, `agents/`, `contracts/`, `policies/`, `playbooks/`, and `sidekick-prompts/` into `~/.claude`. It is idempotent — re-run it after `git pull` whenever the repo's structure changes (new directories, renamed files). Existing correct symlinks are left alone; stale symlinks are updated. A real file or directory blocking a target is reported but never overwritten.
 
-That's it. Claude Code picks these up automatically across all projects.
+Claude Code picks these up automatically across all projects once the symlinks are in place.
 
 ## License
 
