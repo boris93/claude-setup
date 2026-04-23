@@ -1,18 +1,29 @@
 # Agent Instructions
 
-This file is the **L1 layer** of the setup — cross-cutting principles applicable to every role. Shared contracts (L2) are imported below; persona-specific playbooks (L3) live under `playbooks/` and are loaded on-demand when the main session enters a specific role.
+This file is the **L1 layer** of the setup — cross-cutting principles applicable to every role. Shared contracts and policies (L2) are imported below; persona-specific playbooks (L3) live under `playbooks/` and are loaded on-demand when the main session enters a specific role.
 
 **Layering reference:**
 - **L1** (this file) — cross-cutting principles, role-agnostic
-- **L2** (`contracts/*`) — shared schemas, protocols, vocabulary
+- **L2** — shared *contracts* (artifact shapes) in `contracts/*`, shared *policies* (behavioral rules) in `policies/*`, and shared *vocabulary* in `vocabulary.md`
 - **L3** (`playbooks/*`) — persona-specific procedures, loaded per-role
+
+The contract vs policy vs vocabulary distinction is defined in `vocabulary.md`. Short version: contracts specify the shape of artifacts flowing between agents; policies specify behavioral rules within or across roles; vocabulary is pure definitions.
 
 ## L2 imports — loaded by every session and subagent
 
-@contracts/finding-schema.md
-@contracts/scope-protocol.md
-@contracts/deferred-policy.md
-@contracts/vocabulary.md
+### Contracts (artifact shapes)
+@contracts/finding.md
+@contracts/scope-block.md
+@contracts/plan.md
+@contracts/code-change.md
+
+### Policies (shared behavioral rules)
+@policies/synthesis.md
+@policies/scope-discipline.md
+@policies/contract-enforcement.md
+
+### Vocabulary (shared definitions)
+@vocabulary.md
 
 ## L1 Principles
 
@@ -29,7 +40,7 @@ This principle applies *within* the declared problem scope. It does not authoriz
 
 ### Response altitude
 
-Match the altitude of the user's question. Altitudes are defined in `contracts/vocabulary.md`.
+Match the altitude of the user's question. Altitudes are defined in `vocabulary.md`.
 
 - Infer altitude from the question: *"Should we do X?"* = strategy; *"How does Y work?"* = implementation.
 - Respond at that altitude by default. Lower-level material summarizes as a count with a drill-down hook: *"3 implementation risks below — ask if you want them."*
@@ -43,10 +54,12 @@ Default is altitude-*matched*, not altitude-*capped* — never shy away from dep
 
 Comprehensiveness is a virtue *within* the declared problem scope, not a license to expand it.
 
-- Every non-trivial task begins with a scope block per `contracts/scope-protocol.md`.
-- Reviewers surface findings; synthesis routes adjacent findings to deferred per `contracts/deferred-policy.md`.
+- Every non-trivial task begins with a scope block per `contracts/scope-block.md`.
+- Reviewers surface findings; synthesis routes adjacent findings to deferred per `policies/synthesis.md`.
 - Do not absorb adjacent findings into the current change because they are "architecturally connected."
 - A legitimate `in-scope blocking` finding stays blocking. Scope governs routing, not severity.
+
+Operational detail (scope-change requests, anti-patterns, reviewer obligations) is in `policies/scope-discipline.md`.
 
 ### Double-loop feedback discipline
 
@@ -61,12 +74,21 @@ Always-double-loop triggers: feedback clustering around a theme (tone, depth, au
 
 The system is organized in four layers. Each layer respects its boundary and signals drill-down paths to adjacent layers.
 
-1. **Problem scope** — declared per `contracts/scope-protocol.md`
-2. **Agent structure** — shared contracts in L2, agent-specific expansion in agent files
-3. **Instruction files** — L1 principles / L2 contracts / L3 playbooks (this file's structure)
+1. **Problem scope** — declared per `contracts/scope-block.md`
+2. **Agent structure** — shared contracts and policies in L2, agent-specific expansion in agent files
+3. **Instruction files** — L1 principles / L2 contracts + policies + vocabulary / L3 playbooks (this file's structure)
 4. **Conversational response** — altitude-matched per Response altitude above
 
 Violations — code detail in strategy conversation, persona-specific content in cross-cutting instruction, adjacent findings absorbed into current scope — are the root cause of system bloat. Flag and correct when observed.
+
+### Plan altitude
+
+Plans and RFCs express decisions and shapes, not implementation bodies. The shape rule lives in `contracts/plan.md`. A plan that drifts into implementation becomes unreviewable at the decision level — the failure mode this rule prevents.
+
+- **Planner** authors at plan altitude — authoring rules in `playbooks/planner.md`.
+- **Orchestrator** enforces the plan contract at the dispatch gate per `policies/contract-enforcement.md`.
+- **Reviewers** focus on content review; they do not validate artifact shape, and do not demand code-level specificity in their findings (ask for decisions, behaviors, shapes — not code).
+- **Implementer** expands plan-altitude shapes into code during implementation.
 
 ## L3 Playbooks — load on-demand
 

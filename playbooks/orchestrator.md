@@ -4,7 +4,9 @@
 
 **Who this is for:** The main session acting as orchestrator of multi-reviewer flows. Not loaded by leaf subagents.
 
-**Prerequisites:** CLAUDE.md L1 + L2 contracts (finding-schema, scope-protocol, deferred-policy, vocabulary).
+**Prerequisites:** CLAUDE.md L1 + L2 (contracts, policies, vocabulary).
+
+The orchestrator is the **sole enforcement gate** for artifact contracts entering either review flow (see `policies/contract-enforcement.md`). Reviewers are content specialists; they trust the gate and focus on judgment.
 
 ---
 
@@ -12,33 +14,34 @@
 
 When creating a plan in plan mode, before presenting it to the user for approval:
 
-1. **Verify scope block exists.** The plan must open with a problem scope block per `contracts/scope-protocol.md`. If missing, fix the plan before review — don't force the reviewers to enforce this.
+1. **Gate: enforce the plan contract** per `contracts/plan.md`. Fix the plan yourself rather than forwarding a non-conformant artifact to reviewers:
+   - **Scope block present** per `contracts/scope-block.md` (Problem / In scope / Out of scope).
+   - **Plan altitude clean** — scan for code-fenced blocks containing implementation bodies (function bodies, control-flow blocks, error-handling logic). If present, compress to prose/pseudocode/signatures before submitting. Signatures, schemas, and state transitions are permitted when the shape itself is the decision.
+   - **Site list present** — Q1 of the plan completeness test must have been answered. If missing, return the plan to the author before dispatch.
 
 2. **Submit to reviewers in parallel:**
    - **Always:** Launch `rfc-reviewer` and `rfc-red-team` via the Task tool simultaneously. Each reviewer operates independently (the red-team does NOT receive the rfc-reviewer's output — prevents anchoring bias).
    - **Conditional (UI/UX plans):** If the plan touches UI/UX layers (components, layouts, flows, navigation, user-facing behavior), also launch `ux-reviewer` in the same parallel batch.
    - Pass the scope block verbatim to each reviewer as preamble.
 
-3. **Synthesize findings** using the routing matrix from `contracts/finding-schema.md`:
-   - Group by (severity × scope) matrix, not flat list.
-   - *Convergent findings* (multiple reviewers flag the same concern): high confidence, single entry, note convergence.
-   - *Complementary findings* (different reviewers find different issues): both valid, address both.
-   - *Severity conflicts* (same concern, different severity): present both assessments with reasoning — do not unilaterally resolve.
-   - *Malformed findings* (missing required fields per finding-schema, e.g., red-team finding without a scenario): discard. If all findings from a reviewer are malformed, treat as reviewer failure (see step 7).
-   - *Adjacent findings*: route to deferred per `contracts/deferred-policy.md`. Do not absorb into the current plan.
-   - Present unified synthesis per the output precedence in `finding-schema.md`.
+3. **Synthesize findings** per `policies/synthesis.md`:
+   - Apply the routing matrix (severity × scope).
+   - Convergent / complementary / conflicting handling per the policy.
+   - Malformed findings (missing required fields per `contracts/finding.md`) discarded; if all findings from a reviewer are malformed, treat as reviewer failure (see step 7).
+   - Adjacent findings routed to deferred (do not absorb into the current plan).
+   - Present unified synthesis following the output precedence in the synthesis policy.
 
 4. **Fix `blocking × in-scope` issues.** Adjacent findings are NOT addressed in this pass — they defer.
 
-5. **Re-review holistically.** Resubmit the *entire* plan (not just fixes) to all applicable reviewers in parallel.
+5. **Re-review holistically.** Resubmit the *entire* plan (not just fixes) to all applicable reviewers in parallel. Before re-dispatch, re-run the gate from step 1 — if any fix reintroduced a shape violation, catch it here.
 
 6. **Iterate until clean.** Repeat steps 3–5 until no `blocking × in-scope` findings remain. **Max 3 iterations.** After 3 passes, present remaining findings to the user for judgment rather than continuing to loop.
 
 7. **Reviewer fallback.** If any reviewer fails (timeout, error, empty output, or all-malformed findings), proceed with remaining reviewers' findings and note the failure. Do not block on a single reviewer.
 
 8. **Present to user** via ExitPlanMode once the plan has passed all applicable reviews (or hit the iteration cap, or after fallback). Include:
-   - Unified synthesis per finding-schema output precedence
-   - Deferred findings (compressed) per deferred-policy
+   - Unified synthesis per `policies/synthesis.md` output precedence
+   - Deferred findings (compressed) per the same policy
    - Final verdicts
 
 ---
@@ -51,12 +54,16 @@ After implementing changes, follow this multi-reviewer convergence process. Each
 
 ### Phase 1: Parallel review loop
 
-**1a. Trigger reviewer:** Use `code-review-analyst` via Task tool (no `max_turns` limit). Pass a scope block as preamble — this is required (see `~/.claude/contracts/scope-protocol.md`). If the change came from a plan, use that plan's scope block verbatim. If the change is a direct dirty-tree edit with no prior plan, **synthesize a scope block from the current context**: derive Problem / In scope / Out of scope from the user's original request and the diff. A synthesized scope block is legitimate input; the contract requires *a* scope block, not specifically a plan-derived one. Without this synthesis step, the reviewer will refuse findings and the gating flow stalls.
+**1a. Gate: enforce the code-change contract** per `contracts/code-change.md`, then trigger reviewer. Use `code-review-analyst` via Task tool (no `max_turns` limit). The scope block is required input:
+- If the change came from a plan, use that plan's scope block verbatim.
+- If the change is a direct dirty-tree edit with no prior plan, **synthesize the scope block from context** — derive Problem / In scope / Out of scope from the user's original request and the diff. A synthesized scope block is legitimate input per `contracts/code-change.md`; the contract requires *a* scope block, not specifically a plan-derived one.
+
+Without this synthesis step the orchestrator gate fails and the flow stalls.
 
 **1b. Synthesize and fix:**
-- Classify each finding per finding-schema (severity × scope).
+- Classify each finding per `contracts/finding.md` (severity × scope).
 - Filter false positives; identify convergent concerns.
-- Present succinct summary to the user per output precedence.
+- Present succinct summary to the user per `policies/synthesis.md` output precedence.
 - Apply agreed fixes.
 
 **1c. Re-run reviews** on updated code. Repeat from 1a.
@@ -107,7 +114,7 @@ Review all P1 findings surfaced and fixed across Phases 1–3. Goal: identify un
 4. **Assess** — are fixes symptomatic patches or do they resolve the design flaw? If latent, flag as blocking concern.
 5. **Act:**
    - Latent flaw fixable in this change → fix it, re-run Phase 3.
-   - Fix too large → extract as **blocking follow-up task** (distinct from deferred findings — requires explicit user acknowledgment). No Phase 3 re-run needed.
+   - Fix too large → extract as **blocking follow-up task** (distinct from deferred findings per `policies/synthesis.md` — follow-ups require explicit user acknowledgment). No Phase 3 re-run needed.
    - All root causes resolved or pre-existing → proceed.
    - Present root-cause synthesis grouped by cluster in review output.
 
@@ -119,4 +126,4 @@ Proceed to commit/PR only after Phase 4 completes (or is skipped).
 
 ## Deferred findings during orchestration
 
-Any `adjacent` finding surfaced in any phase routes to deferred per `contracts/deferred-policy.md`. Batch by cluster, write to `deferred_`-prefixed memory, and surface in the synthesis under "Deferred for later." Do not let adjacent findings block progress on the current change.
+Any `adjacent` finding surfaced in any phase routes to deferred per `policies/synthesis.md`. Batch by cluster, write to `deferred_`-prefixed memory, and surface in the synthesis under "Deferred for later." Do not let adjacent findings block progress on the current change.

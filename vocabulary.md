@@ -1,8 +1,8 @@
 # Shared Vocabulary
 
-**Status:** Shared contract. Glossary of cross-cutting concepts used across CLAUDE.md, playbooks, and agent files. Definitions live here; directives that invoke these concepts live in CLAUDE.md L1.
+**Status:** Shared glossary. Definitions of cross-cutting concepts used across CLAUDE.md, contracts, policies, playbooks, and agent files. Definitions live here; directives that invoke these concepts live in `CLAUDE.md` L1; artifact shapes live in `contracts/`; behavioral rules live in `policies/`.
 
-If you find a concept redefined elsewhere, fix that location to reference this file. If you find a directive here, move it to L1.
+If you find a concept redefined elsewhere, fix that location to reference this file. If you find a directive, contract, or policy masquerading as vocabulary here, move it to its proper layer.
 
 ## Composition blindness
 
@@ -39,7 +39,7 @@ The abstraction level at which a conversation, response, or artifact operates. C
 - **Implementation** — specific files, functions, tests
 - **Operational** — debugging, edge cases, runtime behavior
 
-The directive for how altitude is applied in responses is in CLAUDE.md L1 under **Response altitude**.
+The directive for how altitude is applied in responses is in `CLAUDE.md` L1 under **Response altitude**. The *plan* altitude applied to plan artifacts is captured as a shape rule in `contracts/plan.md`.
 
 ## Double-loop learning
 
@@ -50,15 +50,26 @@ A framing for responding to feedback:
 
 *Triggers that always demand double-loop:* feedback clustering around a theme (tone, depth, audience); user rejecting a direction rather than wordsmithing.
 
-The directive for when double-loop is required is in CLAUDE.md L1 under **Double-loop feedback discipline**.
+The directive for when double-loop is required is in `CLAUDE.md` L1 under **Double-loop feedback discipline**.
+
+## Contract vs policy vs vocabulary
+
+A frame for deciding where a new rule lives:
+
+- **Contract** — the shape of an *artifact* that flows between agents. Lives in `contracts/*`. Enforced at agent boundaries (see `policies/contract-enforcement.md`).
+- **Policy** — a *behavioral rule* within a role, or shared across roles. Lives in `policies/*` (shared) or `playbooks/*` (role-specific) or agent files (agent-specific). Self-policed within the role.
+- **Vocabulary** — a shared *definition* that neither prescribes behavior nor specifies a shape. Lives in this file. Referenced by name from every layer.
+
+One contract typically induces policies at each role that touches the artifact (producer, gate, consumer). Contracts describe *what*; policies describe *how each role behaves with respect to the what*.
 
 ## Other cross-cutting principles
 
-These are defined and authoritatively stated in CLAUDE.md L1 — referenced by name throughout the system:
+Directives authoritatively stated in `CLAUDE.md` L1 — referenced by name throughout the system:
 
-- **Scope discipline** — comprehensiveness within the declared scope, not as a license to expand it
+- **Scope discipline** — comprehensiveness within declared scope, not license to expand (operational detail in `policies/scope-discipline.md`)
 - **Response altitude** — match the user's altitude; signal drill-downs; compress lower detail
 - **Layered abstraction (meta-principle)** — four layers (problem scope, agent structure, instruction files, conversational response) each honoring boundaries and signaling drill-down paths
 - **Execution mindset** — calibrate ambition to AI execution economics
+- **Plan altitude** — plans express decisions and shapes, not implementation bodies (shape rule in `contracts/plan.md`)
 
-See CLAUDE.md for the authoritative directive wording.
+See `CLAUDE.md` for the authoritative directive wording.

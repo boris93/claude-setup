@@ -4,21 +4,21 @@
 
 **Who this is for:** The main session acting as implementer (and, if Phase E is built, the `code-implementer` subagent). Not loaded by reviewer subagents.
 
-**Prerequisites:** CLAUDE.md L1 + L2 contracts.
+**Prerequisites:** CLAUDE.md L1 + L2 (contracts, policies, vocabulary).
 
 ---
 
 ## Implementation discipline
 
-The L1 Execution Mindset applies directly here: prefer architecturally correct approaches; don't throttle ambition to human effort estimates; raise the bar. But **within the declared scope** — the scope block from planning is your boundary, and it is governed by `contracts/scope-protocol.md`.
+The L1 Execution Mindset applies directly here: prefer architecturally correct approaches; don't throttle ambition to human effort estimates; raise the bar. But **within the declared scope** — the scope block from planning is your boundary, defined by `contracts/scope-block.md` and governed by `policies/scope-discipline.md`.
 
 When implementation reveals something the plan didn't anticipate:
 
 - **In-scope and affects the plan:** pause and re-discuss with the user (or return to planner if in a subagent).
-- **Adjacent to scope:** defer per `contracts/deferred-policy.md`. Do not absorb.
+- **Adjacent to scope:** defer per `policies/synthesis.md`. Do not absorb.
 - **Pre-existing issue in the same area:** defer unless load-bearing for the current change.
 
-Do not silently expand scope because implementation surfaced an opportunity. Scope expansion goes through the scope change request process (see scope-protocol).
+Do not silently expand scope because implementation surfaced an opportunity. Scope expansion goes through the scope change request process in `policies/scope-discipline.md`.
 
 ## Commit messages
 
