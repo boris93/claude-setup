@@ -86,7 +86,7 @@ If changes touch user-facing UI (components, layouts, flows, modals, forms, erro
 
 **3a. Run high-effort gating review** (in background):
 ```bash
-codex -s danger-full-access -c model_reasoning_effort="xhigh" -m "gpt-5.4" review --uncommitted
+codex -s danger-full-access -c model_reasoning_effort="xhigh" -m "gpt-5.5" review --uncommitted
 ```
 
 **Fallback** (triggers only after Codex has fully terminated): If Codex fails (non-zero exit, rate limits, errors), run the Claude CLI fallback and code-review-analyst adversarial pass in parallel:
