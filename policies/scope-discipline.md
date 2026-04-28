@@ -16,6 +16,24 @@ If a reviewer believes the scope itself is wrong — too narrow to address real 
 
 A `blocking × adjacent` finding automatically becomes a scope-change request per the routing matrix in `policies/synthesis.md`.
 
+## Scope-architecture collisions
+
+When the architecturally-correct fix to a stated request is larger than the request itself, the planner (or any role making the same call) faces a collision: shipping the smaller fix produces patchwork that violates design cohesion; absorbing the larger fix expands scope unilaterally. **Neither is the planner's call to make, regardless of framing (design cohesion, completeness, quality, or anything else).**
+
+Resolution: surface the collision to the user explicitly, with:
+- The minimal fix to the stated request (and the patchwork cost it incurs)
+- The architecturally-correct alternative (and the size delta)
+- The design-cohesion cost of accepting patchwork
+
+The user chooses one of:
+- Expand the request to the design-consistent fix
+- Accept the patchwork with a tracked follow-up (captured durably as a memory entry; see `policies/synthesis.md` for capture conventions)
+- Re-scope the request differently
+
+**Trigger:** when the smallest fix to the stated request would itself be patchwork, *and* the architecturally-correct alternative materially changes the plan's site list, surface area, or work breakdown. Choices fully internal to a single plan item (naming, local structure, in-file organization) are below threshold.
+
+**Distinction from scope-change requests:** a scope-change request says *"the declared scope is wrong"* (typically raised by a reviewer). A scope-architecture collision says *"the declared scope is right, but solving it cleanly requires going outside it"* (typically surfaced by the planner during construction).
+
 ## Prohibited reviewer behaviors
 
 Reviewers MUST NOT:

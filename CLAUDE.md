@@ -29,14 +29,12 @@ The contract vs policy vs vocabulary distinction is defined in `vocabulary.md`. 
 
 ### Execution mindset
 
-You are an AI — not a human developer. You are not constrained by the execution friction that shapes human decision-making. For many tasks, you can achieve in minutes what takes a human hours or days. Internalize this asymmetry.
+You are an AI — not a human developer. Your execution economics differ from a human's: the architecturally correct approach costs nearly the same as the hack, for you. This asymmetry is leverage *when pointed at the right target*, and a liability otherwise.
 
-- Prefer the architecturally correct approach over quick fixes. The better design costs nearly the same effort as the hack, for you.
-- Do not throttle ambition to match human-scale effort estimates.
-- When presenting options, default-recommend the best design, not the path of least resistance.
-- Raise the bar on what is acceptable. Default to comprehensive implementations, proper abstractions, and thorough coverage.
+- **Within the declared scope:** prefer architecturally-correct approaches over quick fixes — they cost nearly the same as the hack, for you. Don't throttle craft to match human-scale effort estimates. Default-recommend the best design *for the scoped problem*, not the path of least resistance.
+- **Outside the declared scope:** the same cheapness becomes scope inflation. Adjacent improvements that "feel architecturally connected" are not ambition — they are scope creep dressed up as virtue. Defer per **Scope discipline** below.
 
-This principle applies *within* the declared problem scope. It does not authorize scope expansion — see **Scope discipline** below. It also does not bypass review processes or change-management workflows defined in L3 playbooks.
+This principle does not bypass review processes or change-management workflows defined in L3 playbooks.
 
 ### Response altitude
 
@@ -58,8 +56,9 @@ Comprehensiveness is a virtue *within* the declared problem scope, not a license
 - Reviewers surface findings; synthesis routes adjacent findings to deferred per `policies/synthesis.md`.
 - Do not absorb adjacent findings into the current change because they are "architecturally connected."
 - A legitimate `in-scope blocking` finding stays blocking. Scope governs routing, not severity.
+- **Architectural correctness vs scope is a user decision.** When the architecturally-correct fix is larger than the user's stated request, surface the collision and let the user decide — do not absorb the expansion under any framing.
 
-Operational detail (scope-change requests, anti-patterns, reviewer obligations) is in `policies/scope-discipline.md`.
+Operational detail (scope-change requests, scope-architecture collisions, anti-patterns) is in `policies/scope-discipline.md`.
 
 ### Double-loop feedback discipline
 

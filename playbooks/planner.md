@@ -24,6 +24,24 @@ When constructing a plan, the output must include:
 
 The orchestrator gate (see `playbooks/orchestrator.md` and `policies/contract-enforcement.md`) validates the plan contract before dispatch to reviewers. Your self-check is author-side compliance; the gate is the authoritative enforcement.
 
+## Right-sizing — anchor every plan item to the stated request
+
+Before drafting plan content, answer:
+
+> *What is the smallest change that solves the user's stated request?*
+
+If the request is implicit — a bug report, a symptom, a vague brief — first synthesize an explicit one-sentence statement of what you're solving and confirm it with the user. The synthesis must be the **narrowest faithful restatement** — name only what the user named. Broadening qualifiers ("across all", "including", "consistently") the user did not use are scope expansions; surface them as options, don't fold them in.
+
+This is **not** "minimum change at any cost" — that produces **patchwork**: a special case glued onto a generic pattern, a workaround that bypasses a normalized path, a parallel structure where one already exists. Patchwork solves locally, accumulates debt, and fights the design grain.
+
+Every plan item must be either (a) required for the user's stated request, (b) a prerequisite the request cannot be solved without, or (c) required to preserve an invariant the change touches per Q3 of the completeness test below. Items satisfying none of these are **scope inflation** — defer per `policies/scope-discipline.md`. (b) and (c) items (auth checks, input validation, security guards, etc.) are part of the cost of correctness for the stated request, not inflation, even when the user did not enumerate them.
+
+If the smallest fix to the stated request would itself be patchwork, the architecturally-correct alternative is by definition larger than the stated request. **This is a scope-architecture collision; the user is the tiebreaker, not you.** Surface the collision per the *Scope-architecture collisions* section of `policies/scope-discipline.md`: present the patchwork option, the design-consistent alternative, the size delta, and the design-cohesion cost of patchwork.
+
+If the answer is smaller than your instinct suggests, the instinct is a scope-inflation signal — trust the answer.
+
+Right-sizing and the completeness test below interleave: a candidate scope produces a candidate site list (Q1 of the completeness test), which feeds back into right-sizing — knowing the surface area is often what tells you whether the smallest fix is patchwork. Iterate until **stable**: a full pass produces no change to scope or site list. If iteration substantively changes the synthesized request, re-confirm with the user. If pass 3 is still producing changes, the request is likely under-specified or genuinely cross-cutting — surface as a scope-clarity question rather than continuing to iterate.
+
 ## Plan completeness test
 
 A plan converts implicit decisions into explicit ones *before* code is written. Bugs cluster where a plan left a decision implicit and the implementer chose a "locally clean" default that composed into globally wrong behavior. The two failure modes — **composition blindness** and **default-by-omission** — are defined in `vocabulary.md`.
