@@ -29,7 +29,7 @@ Do not silently expand scope because implementation surfaced an opportunity. Sco
 
 ## Commit gating
 
-**Never commit without completing the full Code Review Flow first.** If the user asks to commit, run the Code Review Flow (via `~/.claude/playbooks/orchestrator.md`) before creating the commit.
+**Never commit without completing the full Code Review Flow first.** The Code Review Flow is defined in `~/.claude/playbooks/orchestrator.md` — running it means switching to the orchestrator role (load that playbook, execute the flow, then return here to create the commit).
 
 This is non-negotiable. Exceptions:
 
