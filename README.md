@@ -24,8 +24,9 @@ playbooks/                    # L3 — persona-specific procedures, loaded on-de
   planner.md                  #   plan mode protocol, plan completeness test, authoring guidance
   implementer.md              #   implementation discipline, commit gating
 agents/                       # Custom subagents (inherit L1 + L2, keep their own expansion)
-  rfc-reviewer.md             #   structured plan audit
-  rfc-red-team.md             #   adversarial plan scenarios
+  rfc-reviewer.md             #   structured plan audit (soundness)
+  rfc-red-team.md             #   adversarial plan scenarios (robustness)
+  rfc-minimizer.md            #   plan minimality audit (subtractive findings, post-convergence)
   code-review-analyst.md      #   code quality + RFC adherence
   ux-reviewer.md              #   user-facing flows through persona lenses
   security-researcher.md      #   attack surface decomposition

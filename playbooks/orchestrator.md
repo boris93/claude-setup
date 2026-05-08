@@ -12,7 +12,9 @@ The orchestrator is the **sole enforcement gate** for artifact contracts enterin
 
 ## Plan Review Flow
 
-When creating a plan in plan mode, before presenting it to the user for approval:
+When creating a plan in plan mode, before presenting it to the user for approval. Phased structure mirrors Code Review Flow.
+
+### Phase 1: Parallel review loop
 
 1. **Gate: enforce the plan contract** per `contracts/plan.md`. Fix the plan yourself rather than forwarding a non-conformant artifact to reviewers:
    - **Scope block present** per `contracts/scope-block.md` (Problem / In scope / Out of scope).
@@ -23,6 +25,7 @@ When creating a plan in plan mode, before presenting it to the user for approval
    - **Always:** Launch `rfc-reviewer` and `rfc-red-team` via the Task tool simultaneously. Each reviewer operates independently (the red-team does NOT receive the rfc-reviewer's output — prevents anchoring bias).
    - **Conditional (UI/UX plans):** If the plan touches UI/UX layers (components, layouts, flows, navigation, user-facing behavior), also launch `ux-reviewer` in the same parallel batch.
    - Pass the scope block verbatim to each reviewer as preamble.
+   - **Note:** `rfc-minimizer` is NOT part of this batch — it runs in Phase 2 after convergence to avoid oscillation with `rfc-red-team` (minimizer would remove what red-team adds, red-team would re-add it next iteration).
 
 3. **Synthesize findings** per `policies/synthesis.md`:
    - Apply the routing matrix (severity × scope).
@@ -39,10 +42,54 @@ When creating a plan in plan mode, before presenting it to the user for approval
 
 7. **Reviewer fallback.** If any reviewer fails (timeout, error, empty output, or all-malformed findings), proceed with remaining reviewers' findings and note the failure. Do not block on a single reviewer.
 
-8. **Present to user** via ExitPlanMode once the plan has passed all applicable reviews (or hit the iteration cap, or after fallback). Include:
-   - Unified synthesis per `policies/synthesis.md` output precedence
-   - Deferred findings (compressed) per the same policy
-   - Final verdicts
+8. **Aggregate Phase 1 findings.** Maintain a cumulative findings list across iterations 1..N (not just the final iteration's findings). The union is Phase 2's input — a finding raised in iteration 1, addressed by added plan content, then absent in iteration 2 still justifies that content; the minimizer needs to see it.
+
+   **Filter to `blocking` and `significant` only** when passing to the minimizer. `acknowledged` findings document but don't require addressing per `policies/synthesis.md`; plan content added in response to them is planner-side scope inflation the minimizer is designed to catch. `strength` findings protect nothing.
+
+### Phase 2: Minimization pass
+
+Triggered only after Phase 1 reaches **clean convergence** — no `blocking × in-scope` findings remaining. The minimization pass audits whether plan content accumulated across iterations is still load-bearing for the original scope block.
+
+**Skip Phase 2 (and Phase 3) and proceed directly to Phase 4 if:**
+- Phase 1 hit the iteration cap with unresolved `blocking × in-scope` findings — the plan needs user revision; minimizing a plan about to change is wasted effort and muddles synthesis.
+- The plan is trivial (single decision, no compositional surface) — minimization yields no useful output. Use judgment.
+
+Otherwise:
+
+1. **Launch `rfc-minimizer`** via Task tool. Pass three inputs:
+   - The current plan (post Phase 1 convergence)
+   - The original scope block (verbatim as preamble) — the minimizer's anchor
+   - The aggregate Phase 1 findings (from step 8 above, already filtered to `blocking` and `significant`) — the minimizer downgrades any blocking finding whose removal would reintroduce a gap flagged by one of these
+
+2. **Synthesize minimization findings** per `policies/synthesis.md`. All findings are subtractive by construction. Conflicting-recommendation findings (minimizer says remove, a Phase 1 finding justifies keep) surface to the user — do not auto-resolve.
+
+3. **Minimizer fallback.** If `rfc-minimizer` fails (timeout, error, empty output, all-malformed findings), skip to Phase 4 with a note that minimization was skipped. Do not block on minimizer failure — Phase 1 already produced a sound plan.
+
+4. **If no `blocking × in-scope` minimization findings**, skip Phase 3 and proceed to Phase 4.
+
+### Phase 3: Verification pass (conditional)
+
+Triggered only if Phase 2 yielded `blocking × in-scope` minimization findings.
+
+1. **Apply minimization removals** to the plan. Adjacent-scope minimization findings route to deferred per `policies/synthesis.md` — do not apply, but capture as deferred follow-ups.
+
+2. **Single verification re-review.** Re-launch `rfc-reviewer` and `rfc-red-team` (and `ux-reviewer` if applicable) in parallel on the minimized plan. Re-run the Phase 1 gate (step 1) before dispatch. **Max 1 verification pass; do not loop.**
+
+3. **Synthesize verification findings:**
+   - Clean (no new `blocking × in-scope`) → proceed to Phase 4.
+   - New `blocking × in-scope` findings that conflict with minimization removals → surface the conflict to the user via Phase 4. Do not auto-resolve; do not re-loop. The user breaks the tie.
+   - New `blocking × in-scope` findings unrelated to the removals (rare) → fix and skip back to Phase 4 directly; do not re-trigger Phase 2.
+
+### Phase 4: Present to user
+
+Present via ExitPlanMode. Include:
+
+- Unified synthesis per `policies/synthesis.md` output precedence
+- Deferred findings (compressed) per the same policy — including any adjacent-scope minimization findings
+- Minimization removals applied (Phase 2 → 3 path)
+- Any unresolved conflicting-recommendation findings from minimization vs Phase 1 reviewers — user breaks the tie
+- Verification pass result (if Phase 3 ran), including any Phase 3 case (c) fix applied without re-verification — surface explicitly so the user can request a manual re-check if the change is non-trivial
+- Final verdicts (per-reviewer)
 
 ---
 

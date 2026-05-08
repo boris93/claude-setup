@@ -73,3 +73,4 @@ Discard findings missing required fields (e.g., adversarial `blocking` without s
 - *Convergent* (multiple reviewers flag the same concern): high confidence, single entry, note convergence.
 - *Complementary* (different reviewers find different issues): both valid, address both.
 - *Conflicting severity* (same concern, different severity): present both assessments with reasoning — do not unilaterally resolve.
+- *Conflicting recommendation* (different reviewers propose opposite actions on the same plan element — typically `rfc-minimizer` says remove, another reviewer's finding justifies keep): present both with reasoning, surface to the user. Do not auto-resolve; do not search for a compromise. The user breaks the tie. This conflict is structural for minimizer-vs-redteam by design — minimizer removes non-load-bearing structure, red-team justifies defensive structure via scenarios.
