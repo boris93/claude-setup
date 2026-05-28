@@ -13,6 +13,14 @@ set -euo pipefail
 SETUP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="${HOME}/.claude"
 
+if [[ -f "${SETUP_ROOT}/scripts/generate-surfaces.py" ]]; then
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "ERROR python3 is required to validate generated agent surfaces" >&2
+    exit 1
+  fi
+  python3 "${SETUP_ROOT}/scripts/generate-surfaces.py" --check
+fi
+
 mkdir -p "$CLAUDE_DIR"
 
 # Items to link from repo root into ~/.claude. Both files and directories
@@ -20,6 +28,7 @@ mkdir -p "$CLAUDE_DIR"
 ITEMS=(
   "CLAUDE.md"
   "vocabulary.md"
+  "roles"
   "agents"
   "contracts"
   "policies"
