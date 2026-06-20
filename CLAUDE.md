@@ -16,6 +16,7 @@ The contract vs policy vs vocabulary distinction is defined in `vocabulary.md`. 
 @contracts/scope-block.md
 @contracts/plan.md
 @contracts/code-change.md
+@contracts/review-ledger.md
 
 ### Policies (shared behavioral rules)
 @policies/synthesis.md

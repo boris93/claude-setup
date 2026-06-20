@@ -33,6 +33,7 @@ Contracts:
 - `${CODEX_HOME:-~/.codex}/contracts/scope-block.md`
 - `${CODEX_HOME:-~/.codex}/contracts/plan.md`
 - `${CODEX_HOME:-~/.codex}/contracts/code-change.md`
+- `${CODEX_HOME:-~/.codex}/contracts/review-ledger.md`
 
 Policies:
 
@@ -119,6 +120,17 @@ Plans and RFCs express decisions and shapes, not implementation bodies.
 When a plan drifts into function bodies, loops, or real error-handling logic,
 compress it back to prose, signatures, schemas, or site lists.
 
+## Codex Delegation Boundary
+
+Codex skills are role contracts, not autonomous subagents by themselves. If a
+playbook says to launch reviewer roles, use the multi-agent/subagent runtime only
+when higher-priority Codex instructions permit it. When the runtime requires the
+user to explicitly ask for subagents, delegation, or parallel agent work, do not
+treat the repo playbook alone as that permission.
+
+If delegation is unavailable or not permitted, run the same role contract locally
+and state that reviewer independence or parallelism was degraded.
+
 ## Role Playbooks
 
 Load these explicitly when entering a role:
@@ -135,4 +147,5 @@ Former Claude leaf subagents are Codex skills:
 - `$code-review-analyst`
 - `$ux-reviewer`
 - `$security-researcher`
+- `$review-convergence-analyst`
 - `$gating-review`

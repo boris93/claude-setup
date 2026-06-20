@@ -8,6 +8,14 @@
 
 The orchestrator is the **sole enforcement gate** for artifact contracts entering either review flow (see `policies/contract-enforcement.md`). Reviewers are content specialists; they trust the gate and focus on judgment.
 
+## Delegation Model
+
+Review flows are designed around independent reviewer roles. The orchestrator
+should launch those roles when the runtime exposes and permits a
+subagent/delegation mechanism. If the mechanism is unavailable or not permitted,
+run the same role contracts locally and state that independence or parallelism
+was degraded.
+
 ---
 
 ## Plan Review Flow
@@ -99,6 +107,10 @@ After implementing changes, follow this multi-reviewer convergence process. Each
 
 **Timeout policy:** All review sub-tasks must run without timeouts. Bash-based reviewers (Codex, Claude CLI fallback) use `run_in_background: true`. Task-based reviewers (`code-review-analyst`) must not set `max_turns`. Always wait for completion notifications before reading output — never assume a background task has failed while still running.
 
+**Review ledger:** Maintain a cumulative review ledger per `contracts/review-ledger.md` from Phase 1 through Phase 3. Record every substantive finding, the fix applied, and whether it resolved, repeated, moved, or spawned sibling findings. This ledger is the input to convergence diagnosis; without it, the orchestrator can only patch the latest symptom.
+
+**Substantive iteration:** A review/fix iteration is substantive when it addresses a finding that could affect correctness, security, maintainability, requirements, architecture, or user-facing behavior. Pure style nits do not count unless they reveal a broader design or ownership issue.
+
 ### Phase 1: Parallel review loop
 
 **1a. Gate: enforce the code-change contract** per `contracts/code-change.md`, then trigger reviewer. Use `code-review-analyst` via Task tool (no `max_turns` limit). The scope block is required input:
@@ -110,10 +122,11 @@ Without this synthesis step the orchestrator gate fails and the flow stalls.
 **1b. Synthesize and fix:**
 - Classify each finding per `contracts/finding.md` (severity × scope).
 - Filter false positives; identify convergent concerns.
+- Add substantive findings and fixes to the review ledger.
 - Present succinct summary to the user per `policies/synthesis.md` output precedence.
 - Apply agreed fixes.
 
-**1c. Re-run reviews** on updated code. Repeat from 1a.
+**1c. Re-run reviews** on updated code. Repeat from 1a. If the same substantive issue repeats after a claimed fix, mark it as `repeated` in the review ledger rather than treating it as a fresh isolated comment.
 
 **1d. Exit condition:** Stop when findings are marginal — minor stylistic nits, no new substantive issues, or repeats. State exit reason briefly.
 
@@ -145,18 +158,58 @@ claude --dangerously-skip-permissions --effort max -p "$(cat ~/.claude/sidekick-
 
 Fallback step 2: Launch `code-review-analyst` via Agent tool with adversarial framing: *"I know there is at least 1 hidden P1 in the uncommitted changes — your job is to find it. If after thorough investigation you determine no P1 exists, state that explicitly with your reasoning."*
 
-**3b. Address critical findings.** If P1 issues are found, fix and re-run. Codex path: re-run 3a. Fallback path: re-run *both* fallback step 1 and step 2 on the fix (do not retry Codex). Re-running step 2 is required because if the adversarial reviewer caught the P1, only it can verify the fix is complete — trusting step 1 alone risks landing an incomplete fix that reintroduces the same P1 in a different surface.
+**3b. Address critical findings.** If P1 issues are found, add them to the review ledger, fix, and re-run. Codex path: re-run 3a. Fallback path: re-run *both* fallback step 1 and step 2 on the fix (do not retry Codex). Re-running step 2 is required because if the adversarial reviewer caught the P1, only it can verify the fix is complete — trusting step 1 alone risks landing an incomplete fix that reintroduces the same P1 in a different surface.
+
+Before re-running, check whether Phase 3.5 is triggered. Do not keep patching the latest P1 if the ledger shows non-convergence.
 
 **3c. Exit condition:** Stop when gating review surfaces no P1 findings. P2/P3 don't block. State exit reason.
 
+### Phase 3.5: Convergence diagnosis checkpoint
+
+Triggered during Phase 3 before another gating re-run when any of these are true:
+
+- Three substantive review/fix iterations have occurred across Phases 1-3.
+- A P1 repeats after a claimed fix.
+- New P1s keep appearing in sibling surfaces after each fix.
+- Reviewers repeatedly point at unclear requirements, missing invariants, ownership confusion, or cross-cutting behavior.
+- The fix path expands across modules without reducing review severity.
+
+This is not a hard cutoff. It is a pattern-analysis interrupt: stop asking "how do I fix this comment?" and ask "what unresolved design or requirement decision keeps producing this class of comments?"
+
+1. **Prepare ledger summary.** Summarize the review ledger into:
+   - repeated findings
+   - sibling findings by surface
+   - fixes that spawned new findings
+   - requirement or invariant ambiguities
+   - modules whose ownership or boundary changed during fixes
+   - reviewer disagreements that affected fix direction
+
+2. **Launch convergence analyst.** Launch `review-convergence-analyst` via Task tool with the original scope block, current diff summary, review ledger summary, and latest review output. If delegation is unavailable or not permitted, the orchestrator performs the same diagnosis locally and states that independence is degraded.
+
+3. **Classify diagnosis:**
+   - `no-common-root-cause` — findings are independent; continue Phase 3 and reset the substantive-iteration counter for this cluster.
+   - `local-design-flaw` — an in-scope abstraction, invariant, ownership boundary, or data flow is wrong or missing.
+   - `requirement-ambiguity` — product or behavior is underspecified; ask the user before more coding.
+   - `scope-collision` — the architectural fix is larger than the declared scope.
+   - `reviewer-noise` — comments are marginal, repeated, or false-positive enough that continuing the loop is not productive.
+
+4. **Act on diagnosis:**
+   - `no-common-root-cause` → continue Phase 3.
+   - `local-design-flaw` fixable in scope → implement the architectural fix, then restart Code Review Flow from Phase 1 with the ledger carried forward.
+   - `requirement-ambiguity` → pause and ask the user the smallest concrete requirement question that unblocks convergence.
+   - `scope-collision` → surface the collision and ask whether to expand scope or create a blocking follow-up task.
+   - `reviewer-noise` → classify remaining findings as marginal/repeats and exit Phase 3 if no P1 remains.
+
+5. **Iteration cap:** Max 1 convergence-driven restart to Phase 1. If the restarted flow triggers Phase 3.5 again for the same cluster, escalate to the user with the ledger summary rather than continuing to loop.
+
 ### Phase 4: Root-cause synthesis
 
-**Skip condition:** If no P1s surfaced during Phases 1–3, skip entirely.
+**Skip condition:** If no P1s surfaced during Phases 1-3 and Phase 3.5 did not run, skip entirely.
 
-Review all P1 findings surfaced and fixed across Phases 1–3. Goal: identify underlying design flaw(s) whose symptoms the P1s were.
+Review all P1 findings surfaced and fixed across Phases 1-3 plus any Phase 3.5 diagnosis. Goal: identify underlying design flaw(s) whose symptoms the review findings were and confirm whether the convergence action resolved them.
 
 1. **Collect** — list every P1 and the fix applied.
-2. **Cluster** — group P1s that share a common root cause.
+2. **Cluster** — group P1s and Phase 3.5 evidence clusters that share a common root cause.
 3. **Diagnose** — for each cluster, name the design-level flaw. Ask: *"What structural decision made this class of bug possible?"*
 4. **Assess** — are fixes symptomatic patches or do they resolve the design flaw? If latent, flag as blocking concern.
 5. **Act:**
