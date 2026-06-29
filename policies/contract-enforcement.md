@@ -12,6 +12,7 @@ Reviewers are content specialists. They focus on judgment ("is the idea sound?")
 
 - **Plan Review Flow gate** — the orchestrator validates plan artifacts (per `contracts/plan.md`, which composes `contracts/scope-block.md`) before dispatching to RFC reviewers. See `playbooks/orchestrator.md`.
 - **Code Review Flow gate** — the orchestrator validates code change artifacts (per `contracts/code-change.md`) before dispatching to code reviewers. Synthesizes the scope block from context if the change was a direct dirty-tree edit.
+- **RFC implementation closure gate** — the orchestrator validates closure artifacts (per `contracts/rfc-implementation-closure.md`) before dispatching to the RFC implementation verifier.
 
 If a contract fails at the gate, the orchestrator either:
 - **Fixes the artifact** mechanically (e.g., synthesizes a missing scope block, compresses an implementation body to prose on behalf of the author when the violation is minor) — then proceeds.
@@ -22,7 +23,7 @@ If a contract fails at the gate, the orchestrator either:
 - **Planner** self-checks against the plan contract before hand-off (author-side compliance). The planner is trusted but the orchestrator verifies. See `playbooks/planner.md`.
 - **Implementer** produces code changes that compose with the code-change contract. See `playbooks/implementer.md`.
 - **Orchestrator** is the sole enforcement gate. See `playbooks/orchestrator.md`.
-- **Reviewers** (rfc-reviewer, rfc-red-team, code-review-analyst, ux-reviewer, security-researcher) are content specialists. They consume artifacts, assume the gate has validated shape, and focus on content review. Their output complies with `contracts/finding.md`.
+- **Reviewers** (rfc-reviewer, rfc-red-team, rfc-implementation-verifier, code-review-analyst, ux-reviewer, security-researcher) are content specialists. They consume artifacts, assume the gate has validated shape, and focus on content review. Their output complies with `contracts/finding.md`.
 
 ## Reviewer defensive behavior (defense in depth, not primary enforcement)
 

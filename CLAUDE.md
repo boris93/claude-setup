@@ -17,6 +17,7 @@ The contract vs policy vs vocabulary distinction is defined in `vocabulary.md`. 
 @contracts/plan.md
 @contracts/code-change.md
 @contracts/review-ledger.md
+@contracts/rfc-implementation-closure.md
 
 ### Policies (shared behavioral rules)
 @policies/synthesis.md
@@ -100,4 +101,4 @@ The main session plays multiple roles depending on the current activity. When en
 
 Do not use relative paths like `playbooks/orchestrator.md` — they resolve against the project working directory, not the config directory, and will fail in any project other than this one.
 
-Leaf subagents (`rfc-reviewer`, `rfc-red-team`, `code-review-analyst`, `ux-reviewer`, `security-researcher`, etc.) inherit L1 + L2 via this CLAUDE.md. They do **not** load any playbook — their own agent-file body is their expansion.
+Leaf subagents (`rfc-reviewer`, `rfc-red-team`, `rfc-implementation-verifier`, `code-review-analyst`, `ux-reviewer`, `security-researcher`, etc.) inherit L1 + L2 via this CLAUDE.md. They do **not** load any playbook — their own agent-file body is their expansion.

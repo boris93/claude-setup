@@ -39,6 +39,13 @@ CONVERGENCE_SUPPORTING_FILES = [
     "contracts/review-ledger.md",
 ]
 
+IMPLEMENTATION_CLOSURE_SUPPORTING_FILES = [
+    "contracts/plan.md",
+    "contracts/code-change.md",
+    "contracts/review-ledger.md",
+    "contracts/rfc-implementation-closure.md",
+]
+
 PROMPT_SKILLS = [
     {
         "name": "gating-review",
@@ -211,6 +218,8 @@ def supporting_files_for(meta: dict[str, str]) -> list[str]:
         support.extend(CODE_SUPPORTING_FILES)
     if kind == "convergence":
         support.extend(CONVERGENCE_SUPPORTING_FILES)
+    if kind == "implementation-closure":
+        support.extend(IMPLEMENTATION_CLOSURE_SUPPORTING_FILES)
 
     seen = set()
     out = []

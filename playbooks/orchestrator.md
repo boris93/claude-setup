@@ -220,7 +220,43 @@ Review all P1 findings surfaced and fixed across Phases 1-3 plus any Phase 3.5 d
 
 **Iteration cap:** Max 1 re-entry to Phase 3 from Phase 4. If the second Phase 3 pass yields findings Phase 4 again flags as latent, escalate to the user.
 
-Proceed to commit/PR only after Phase 4 completes (or is skipped).
+### Phase 4.5: RFC implementation closure (conditional)
+
+Run only when the change was implemented from an RFC or plan.
+
+This phase verifies the final reviewed implementation against the accepted RFC
+contract. It is not a second code-quality review; it asks whether the final code
+does exactly what the RFC asked, not more and not less.
+
+1. **Gate: prepare closure artifact** per
+   `contracts/rfc-implementation-closure.md`:
+   - original RFC or plan, including scope block, non-goals, acceptance
+     criteria, API/data/behavior contracts, and explicit out-of-scope items
+   - final diff after Code Review Flow fixes
+   - related evidence: tests, docs, config, migrations, generated artifacts, and
+     relevant review-ledger entries
+   - accepted deviations or review-forced correctness fixes, or `none`
+
+2. **Launch `rfc-implementation-verifier`.** Pass the closure artifact and ask
+   for one closure verdict plus a requirement-to-evidence trace. If delegation is
+   unavailable or not permitted, the orchestrator performs the same closure
+   check locally and states that independence was degraded.
+
+3. **Act on closure verdict:**
+   - `closed` → proceed to commit/PR.
+   - `blocked-missing-requirement` or `blocked-scope-drift` → fix in scope if
+     possible, then restart Code Review Flow from Phase 1 because the final code
+     changed after review convergence.
+   - `blocked-undocumented-deviation` → ask the user whether to approve an
+     RFC/deviation update or change code back to the RFC.
+   - `needs-user-decision` → pause and ask the smallest concrete scope or
+     product question that unblocks closure.
+
+4. **Iteration cap:** Max 1 closure-driven restart to Phase 1. If closure blocks
+   again after the restarted review flow, escalate to the user with the trace
+   summary rather than continuing to loop.
+
+Proceed to commit/PR only after Phase 4.5 completes (or is skipped).
 
 ---
 

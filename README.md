@@ -19,6 +19,7 @@ contracts/                    # L2 — shapes of artifacts flowing between agent
   plan.md                     #   plan artifact shape (scope block + plan altitude + site list)
   code-change.md              #   code change artifact shape (scope block + diff + context)
   review-ledger.md            #   cumulative review history for convergence diagnosis
+  rfc-implementation-closure.md # final RFC-to-code traceability closure
 policies/                     # L2 — shared behavioral rules across roles
   synthesis.md                #   routing matrix, output precedence, deferred capture
   scope-discipline.md         #   scope-tagging obligations, scope-change requests, anti-patterns
@@ -34,7 +35,8 @@ agents/                       # Generated Claude Code subagents (do not edit dir
   rfc-reviewer.md             #   structured plan audit (soundness)
   rfc-red-team.md             #   adversarial plan scenarios (robustness)
   rfc-minimizer.md            #   plan minimality audit (subtractive findings, post-convergence)
-  code-review-analyst.md      #   code quality + RFC adherence
+  rfc-implementation-verifier.md # final RFC-to-code closure
+  code-review-analyst.md      #   implementation-quality review
   ux-reviewer.md              #   user-facing flows through persona lenses
   security-researcher.md      #   attack surface decomposition
   review-convergence-analyst.md # review-loop convergence diagnosis
@@ -112,8 +114,8 @@ Codex skill adapter from `.agents/skills/` into `~/.agents/skills/`.
 
 Codex then picks up the global `AGENTS.md` on startup and exposes the role
 adapters as skills such as `$rfc-reviewer`, `$rfc-red-team`,
-`$code-review-analyst`, `$ux-reviewer`, `$security-researcher`,
-`$review-convergence-analyst`, and `$gating-review`.
+`$rfc-implementation-verifier`, `$code-review-analyst`, `$ux-reviewer`,
+`$security-researcher`, `$review-convergence-analyst`, and `$gating-review`.
 
 ## License
 

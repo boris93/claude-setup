@@ -34,6 +34,7 @@ Contracts:
 - `${CODEX_HOME:-~/.codex}/contracts/plan.md`
 - `${CODEX_HOME:-~/.codex}/contracts/code-change.md`
 - `${CODEX_HOME:-~/.codex}/contracts/review-ledger.md`
+- `${CODEX_HOME:-~/.codex}/contracts/rfc-implementation-closure.md`
 
 Policies:
 
@@ -144,6 +145,7 @@ Former Claude leaf subagents are Codex skills:
 - `$rfc-reviewer`
 - `$rfc-red-team`
 - `$rfc-minimizer`
+- `$rfc-implementation-verifier`
 - `$code-review-analyst`
 - `$ux-reviewer`
 - `$security-researcher`

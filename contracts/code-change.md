@@ -6,7 +6,7 @@
 
 1. **Scope block** per `contracts/scope-block.md` — provided from the prior plan, or synthesized by the orchestrator from the user's original request and the diff if the change was a direct dirty-tree edit without a prior plan. A synthesized scope block is a legitimate input; the contract requires *a* scope block, not specifically a plan-derived one.
 2. **Diff** — the actual code change under review.
-3. **Related context** — tests, config, or documentation changes accompanying the diff; also any pertinent files the diff touches that reviewers need for judgment.
+3. **Related context** — tests, config, or documentation changes accompanying the diff; also any pertinent files the diff touches that reviewers need for judgment. If the implementation is based on an RFC or plan, include that artifact as related context.
 
 ## Accumulated Review State
 
