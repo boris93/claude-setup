@@ -10,7 +10,10 @@
 
 ## Plan mode protocol
 
-A plan is an artifact with a contract: `contracts/plan.md`. The contract requires three elements — scope block, plan altitude, site list. Your job as planner is to produce a plan that conforms to the contract.
+A plan is an artifact with a contract: `contracts/plan.md`. The contract requires
+a scope block, plan altitude, a site list, and a temporal composition section
+when its risk triggers apply. Your job as planner is to produce a plan that
+conforms to the contract.
 
 When constructing a plan, the output must include:
 
@@ -20,7 +23,8 @@ When constructing a plan, the output must include:
    - **Out of scope:** valid-but-adjacent concerns explicitly deferred
 2. **The plan itself** — sequence, work breakdown, call-site decisions, dependencies — expressed at plan altitude (no implementation bodies).
 3. **Site list** produced by Q1 of the plan completeness test below.
-4. **Pass the plan completeness test** before presenting to the user or reviewers.
+4. **Temporal composition section when triggered** per `contracts/plan.md`.
+5. **Pass the plan completeness test** before presenting to the user or reviewers.
 
 The orchestrator gate (see `playbooks/orchestrator.md` and `policies/contract-enforcement.md`) validates the plan contract before dispatch to reviewers. Your self-check is author-side compliance; the gate is the authoritative enforcement.
 
@@ -52,13 +56,36 @@ Before exiting plan mode, answer in order:
 2. *At each of those sites, have I named the required behavior?* (catches default-by-omission)
 3. *At each of those sites, what existing invariants must the new behavior preserve, and have I verified each one holds?* (catches composition blindness)
 
-Q1 produces the site list (required element of the plan contract). Q2 and Q3 audit each site against the two failure modes. If any answer is "I haven't checked," the plan is not done — regardless of how clean its top-level architecture looks.
+Then ask whether any temporal-composition trigger in `contracts/plan.md`
+applies. If so, answer:
+
+4. *For every applicable canonical temporal event in `contracts/plan.md`, what
+   state and owner transition does it produce, what effects and durable record
+   result, is retry eligible, and what cleanup or compensation follows? For
+   every event marked not applicable, is the rationale valid?*
+5. *Where can an observable effect and its durable record succeed separately,
+   and what ordering, recovery, or compensation preserves the invariant?*
+6. *Who owns each execution unit over time, what cancels or supersedes it, and
+   what concurrency or lock-order constraints apply across authority boundaries?*
+7. *Which adversarial event compositions must tests construct deliberately?*
+
+Q1 produces the site list (required element of the plan contract). Q2 and Q3
+audit each site against the two spatial failure modes. Q4-Q7 produce the
+conditional temporal composition section. If any applicable answer is "I
+haven't checked," the plan is not done — regardless of how clean its top-level
+architecture looks.
 
 **Size the plan to the surface area of change, not the volume of new code.** A 100-line addition that introduces state read in 12 places is a 12-decision plan, not a 100-line plan.
 
 ## Apply the completeness test on sibling shapes
 
 Apply Q1–Q3 whenever the plan introduces any of the sibling shapes defined in `vocabulary.md` (new error types, permissions, lifecycle states, default changes, serialized fields, tightened invariants, shared-utility refactors, sync→async conversions).
+
+For temporal sibling shapes, apply Q4-Q7 as well. If the resulting transition
+surface crosses multiple independently testable lifecycle or authority
+clusters, do not hide the cross-product inside one large plan. Either identify
+the one protocol invariant that makes the combined scope coherent, or surface a
+scope/decomposition decision to the user.
 
 ## Plan altitude — authoring without code
 
@@ -77,4 +104,4 @@ When in doubt: *"would a code reviewer leave a line comment on this block?"* If 
 
 ## Hand-off to review
 
-Once the plan passes the completeness test, hand off to the Plan Review Flow (see `~/.claude/playbooks/orchestrator.md`). If in doubt about completeness, err toward submitting — the orchestrator gate catches shape violations and reviewers catch content gaps. But do not submit a plan that would fail Q1 (no site list). A plan without a site list violates `contracts/plan.md` and the gate will bounce it.
+Once the plan passes the completeness test, hand off to the Plan Review Flow (see `~/.claude/playbooks/orchestrator.md`). If in doubt about completeness, err toward submitting — the orchestrator gate catches shape violations and reviewers catch content gaps. But do not submit a plan that would fail Q1 (no site list) or omit the temporal composition section when a trigger applies. Either omission violates `contracts/plan.md` and the gate will bounce it.

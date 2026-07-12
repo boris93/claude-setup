@@ -29,5 +29,6 @@ If the relative paths are unavailable, try the same files under the configured C
 1. Read the scope block, current diff, and review ledger summary.
 2. Cluster findings by repeated symptom, sibling surface, violated invariant, requirement ambiguity, and fix direction.
 3. Decide whether there is no common root cause, a local design flaw, a requirement ambiguity, a scope collision, or reviewer noise.
-4. Recommend the convergence action: continue gating, restart from Phase 1 after an architectural fix, ask the user a requirement question, or create a blocking follow-up.
-5. Tag every finding by severity and scope; do not propose broad redesigns unless the ledger shows they are necessary for convergence.
+4. Recommend the convergence action: resume the recorded continuation, restart from Phase 1 after an architectural fix, ask the user a requirement question, or create a blocking follow-up.
+5. Return the checkpoint diagnosis, action, status, and resolution requirements for the review ledger.
+6. Tag every finding by severity and scope; do not propose broad redesigns unless the ledger shows they are necessary for convergence.

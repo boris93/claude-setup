@@ -16,6 +16,20 @@ Describing new code without enumerating the call sites that read it. Each unsurf
 
 *Test:* for every new code path, enumerate the call sites. Every site where behavior is not named in the plan is a default-by-omission.
 
+## Temporal composition
+
+The behavior that emerges when otherwise-correct components interact across
+time and lifecycle events.
+Authority and steady-state invariants describe who owns state and what must be
+true; temporal composition describes how the system moves between those states
+when events do not follow the happy path.
+
+*Test:* apply the canonical temporal-event set from `contracts/plan.md` to each
+covered operation. For every applicable event, name the next state, owner,
+observable effects, durable record, retry eligibility, cancellation behavior,
+and cleanup or compensation. Any unnamed result is a temporal
+default-by-omission.
+
 ## Sibling shapes
 
 Same failure mode, different surface. When any of these are introduced, apply both composition-blindness and default-by-omission checks:
@@ -28,6 +42,10 @@ Same failure mode, different surface. When any of these are introduced, apply bo
 - Tightened invariants → every site that previously satisfied the loose version
 - Shared-utility refactors → every caller
 - Sync → async conversions → every caller's error/cancellation handling
+- Long-lived, pausable, or recoverable operations → every applicable canonical
+  temporal event in `contracts/plan.md`
+- Split effect and persistence paths → every ordering and partial-failure result
+- Multiple execution owners → every cancellation, handoff, and ownership change
 
 ## Altitude
 

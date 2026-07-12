@@ -91,6 +91,14 @@ do not perform exhaustive RFC closure.
 
 The orchestrator has already enforced the code-change contract (scope block present, synthesized from context if no prior plan exists) before dispatching to you per `policies/contract-enforcement.md`. You consume the scope block to anchor scope-tagging. Pre-existing issues in the touched area default to `adjacent` scope unless they directly enable or worsen the current change.
 
+Honor the orchestrator's review context lane:
+
+- In **discovery**, reconstruct the current behavior from the artifact and
+  codebase. Do not ask for the prior ledger or proposed fix, and do not treat an
+  author-supplied root-cause claim as established.
+- In **verification**, check the supplied finding and claimed fix, but do not
+  present a clean result as independent discovery of other failures.
+
 ### Phase 1: Code Quality Analysis
 
 Identify what changed (git diff, file comparison, recently modified files). Then analyze:

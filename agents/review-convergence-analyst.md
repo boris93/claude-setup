@@ -90,7 +90,8 @@ Group findings by:
 Classify the loop as exactly one primary diagnosis, with optional secondary
 notes:
 
-- `no-common-root-cause` — findings are independent; continue gating.
+- `no-common-root-cause` — findings are independent; resume the complete
+  recorded continuation token.
 - `local-design-flaw` — an in-scope abstraction, invariant, ownership boundary,
   or data flow is wrong or missing.
 - `requirement-ambiguity` — product or behavior is underspecified; ask the user
@@ -103,7 +104,7 @@ notes:
 
 Recommend one of:
 
-- Continue the existing review loop.
+- Resume the checkpoint's complete recorded continuation token.
 - Apply an in-scope architectural fix, then restart Code Review Flow from
   Phase 1.
 - Ask the user a specific requirement or scope question before coding more.
@@ -119,7 +120,10 @@ Emit:
 3. **Root cause** — the structural decision, missing invariant, or requirement
    ambiguity that produced the symptom cluster.
 4. **Recommended action** — the next convergence move.
-5. **Findings** — only if the diagnosis itself reveals a `blocking` or
+5. **Checkpoint update** — review epoch, complete continuation token, trigger,
+   evidence clusters, diagnosis, action, status (`open`, `actioned`, `resolved`,
+   or `escalated`), and the evidence required to resolve or escalate it.
+6. **Findings** — only if the diagnosis itself reveals a `blocking` or
    `significant` issue per `contracts/finding.md`.
 
 ## Guardrails
@@ -129,6 +133,14 @@ Emit:
   scope, classify it as `scope-collision`.
 - Do not recommend a rewrite when a narrower invariant or interface correction
   explains the cluster.
+- Do not jump phases after a phase-preserving diagnosis. Return both
+  `no-common-root-cause` and `reviewer-noise` to the complete recorded
+  continuation token. In particular, never turn a post-fix review obligation
+  into a phase exit.
+- Do not treat a user decision as resolution when it changes required behavior
+  or scope. Return `actioned` until the artifacts and implementation are updated
+  and a restarted Code Review Flow reaches clean discovery. Use `escalated`
+  only for an explicitly acknowledged durable blocking follow-up.
 - Do not relitigate every review comment. Use comments as evidence for the
   pattern.
 - Prefer architectural language: invariants, boundaries, ownership, contracts,

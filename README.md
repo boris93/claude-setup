@@ -16,7 +16,8 @@ codex/AGENTS.md               # Codex L1 cross-cutting principles. Same setup, a
 contracts/                    # L2 — shapes of artifacts flowing between agents
   finding.md                  #   finding shape (severity × scope tags, required fields)
   scope-block.md              #   Problem / In scope / Out of scope shape
-  plan.md                     #   plan artifact shape (scope block + plan altitude + site list)
+  plan.md                     #   plan artifact shape (scope block + plan altitude + site list +
+                              #     conditional temporal composition)
   code-change.md              #   code change artifact shape (scope block + diff + context)
   review-ledger.md            #   cumulative review history for convergence diagnosis
   rfc-implementation-closure.md # final RFC-to-code traceability closure

@@ -10,7 +10,11 @@ Reviewers are content specialists. They focus on judgment ("is the idea sound?")
 
 ## Enforcement points
 
-- **Plan Review Flow gate** — the orchestrator validates plan artifacts (per `contracts/plan.md`, which composes `contracts/scope-block.md`) before dispatching to RFC reviewers. See `playbooks/orchestrator.md`.
+- **Plan Review Flow gate** — the orchestrator validates plan artifacts (per
+  `contracts/plan.md`, which composes `contracts/scope-block.md`) before
+  dispatching to RFC reviewers. When a temporal-composition trigger applies,
+  the conditional section is part of the required artifact. See
+  `playbooks/orchestrator.md`.
 - **Code Review Flow gate** — the orchestrator validates code change artifacts (per `contracts/code-change.md`) before dispatching to code reviewers. Synthesizes the scope block from context if the change was a direct dirty-tree edit.
 - **RFC implementation closure gate** — the orchestrator validates closure artifacts (per `contracts/rfc-implementation-closure.md`) before dispatching to the RFC implementation verifier.
 

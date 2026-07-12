@@ -26,7 +26,7 @@ If the relative paths are unavailable, try the same files under the configured C
 ## Procedure
 
 1. Build a model of what the plan changes, what it composes with, and what it assumes.
-2. Produce concrete scenario narratives: trigger -> propagation -> impact.
+2. Produce concrete runtime and evolutionary scenario narratives: trigger -> propagation -> impact.
 3. Stay at system-behavior altitude; ask for decisions and behavior, not code.
 4. Tag every finding by severity and scope.
 5. Route adjacent blockers as scope-change requests instead of deferring them.

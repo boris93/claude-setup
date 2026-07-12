@@ -26,7 +26,7 @@ If the relative paths are unavailable, try the same files under the configured C
 ## Procedure
 
 1. Anchor on the user's scope block or synthesize the narrowest faithful one.
-2. Review at plan altitude: decisions, shapes, interfaces, site lists, and invariants, not implementation bodies.
+2. Review at plan altitude: decisions, shapes, interfaces, site lists, temporal composition, and invariants, not implementation bodies.
 3. Apply the canonical role spec from roles/rfc-reviewer.md.
 4. Emit findings using the shared finding contract, with severity and scope tags.
 5. Keep adjacent issues separate; do not expand the plan scope silently.

@@ -28,9 +28,13 @@ When creating a plan in plan mode, before presenting it to the user for approval
    - **Scope block present** per `contracts/scope-block.md` (Problem / In scope / Out of scope).
    - **Plan altitude clean** — scan for code-fenced blocks containing implementation bodies (function bodies, control-flow blocks, error-handling logic). If present, compress to prose/pseudocode/signatures before submitting. Signatures, schemas, and state transitions are permitted when the shape itself is the decision.
    - **Site list present** — Q1 of the plan completeness test must have been answered. If missing, return the plan to the author before dispatch.
+   - **Temporal composition present when triggered** — apply the triggers in
+     `contracts/plan.md`. If one applies, require the transition surface,
+     effect ordering, execution ownership, concurrency constraints, and
+     adversarial composition cases before dispatch.
 
 2. **Submit to reviewers in parallel:**
-   - **Always:** Launch `rfc-reviewer` and `rfc-red-team` via the Task tool simultaneously. Each reviewer operates independently (the red-team does NOT receive the rfc-reviewer's output — prevents anchoring bias).
+   - **Always:** Launch `rfc-reviewer` and `rfc-red-team` via the Task tool simultaneously. Each reviewer operates independently (the red-team does NOT receive the rfc-reviewer's output — prevents anchoring bias). This initial batch is a discovery pass: do not pass prior findings, a proposed fix, or an author-supplied root-cause conclusion.
    - **Conditional (UI/UX plans):** If the plan touches UI/UX layers (components, layouts, flows, navigation, user-facing behavior), also launch `ux-reviewer` in the same parallel batch.
    - Pass the scope block verbatim to each reviewer as preamble.
    - **Note:** `rfc-minimizer` is NOT part of this batch — it runs in Phase 2 after convergence to avoid oscillation with `rfc-red-team` (minimizer would remove what red-team adds, red-team would re-add it next iteration).
@@ -107,13 +111,73 @@ After implementing changes, follow this multi-reviewer convergence process. Each
 
 **Timeout policy:** All review sub-tasks must run without timeouts. Bash-based reviewers (Codex, Claude CLI fallback) use `run_in_background: true`. Task-based reviewers (`code-review-analyst`) must not set `max_turns`. Always wait for completion notifications before reading output — never assume a background task has failed while still running.
 
-**Review ledger:** Maintain a cumulative review ledger per `contracts/review-ledger.md` from Phase 1 through Phase 3. Record every substantive finding, the fix applied, and whether it resolved, repeated, moved, or spawned sibling findings. This ledger is the input to convergence diagnosis; without it, the orchestrator can only patch the latest symptom.
+**Review ledger:** Maintain a cumulative review ledger per
+`contracts/review-ledger.md` from Phase 1 through Phase 3. Record every
+substantive finding's lifecycle, any relationship to earlier findings, and the
+fix and review evidence. The ledger is cumulative across review epochs; the
+substantive-iteration counter is not. This ledger is the input to convergence
+diagnosis; without it, the orchestrator can only patch the latest symptom.
 
-**Substantive iteration:** A review/fix iteration is substantive when it addresses a finding that could affect correctness, security, maintainability, requirements, architecture, or user-facing behavior. Pure style nits do not count unless they reveal a broader design or ownership issue.
+**Review context lanes:** Keep discovery, verification, and diagnosis inputs
+distinct.
+
+- **Discovery** receives the current scope block, artifact, and codebase context
+  needed to reconstruct behavior. It does not receive prior findings, the
+  review ledger, a proposed root cause, or the claimed fix. Initial review and
+  final gating are discovery passes.
+- **Verification** may receive the exact finding and claimed fix it must check.
+  A clean verification result proves closure of that finding, not independent
+  discovery of other failures.
+- **Diagnosis and RFC closure** receive the ledger and accepted history because
+  their mandates require cumulative evidence.
+
+Never present a verification result as independent discovery. A fresh reviewer
+invocation is not independent if its prompt contains the prior diagnosis.
+
+**Substantive iteration and review epoch:** A review/fix iteration is
+substantive when it addresses a finding that could affect correctness,
+security, maintainability, requirements, architecture, or user-facing behavior.
+This includes fixes from the conditional security and UX reviews. Pure style
+nits do not count unless they reveal a broader design or ownership issue. Count
+substantive fixes only within the active review epoch; retain earlier epochs in
+the ledger as history, not as counter or trigger evidence for the new epoch.
+
+### Review control model
+
+The flow is event-driven. Apply this table in every review phase and specialist
+lens; phase-specific prose supplies the reviewer and the recorded continuation,
+but does not override the ordering here.
+
+| Current state | Event | Required action | Allowed next state |
+|---|---|---|---|
+| reviewing | substantive findings recorded | Add each finding with lifecycle `open`, record any relationship to earlier entries, and evaluate every pattern-based convergence trigger **before applying a fix**. If a trigger fires, open a checkpoint with the pending pre-fix obligation; otherwise apply the agreed fix. | checkpoint-open or fixing |
+| fixing | substantive fix completed | Change the finding lifecycle to `actioned`, record the fix and the exact post-fix review obligation as a continuation token, increment the active epoch's substantive-iteration counter, and evaluate every convergence trigger **before review dispatch or phase advance**. | checkpoint-open, verification-required, or discovery-required |
+| verification-required | targeted verification completes | Record whether the supplied finding closed. A clean result closes only that finding and requires a holistic discovery pass. | discovery-required |
+| discovery-required | holistic discovery completes | Record new substantive findings and return to the first row, or, when findings are marginal and no checkpoint blocks progress, take the phase's normal exit. | reviewing or phase-exit |
+| checkpoint-open | diagnosis completes | Record `diagnosis` and `action`; change status to `actioned`, `resolved`, or `escalated` according to the checkpoint rules. No ordinary fix or review dispatch is allowed while status remains `open`. | checkpoint-action or recorded continuation |
+| checkpoint-action | recorded convergence action completes | Restart or resume only as specified by the checkpoint. `actioned` continues to block ordinary phase exit and downstream gates until its required review evidence is recorded. | phase-1 restart, recorded continuation, or checkpoint-resolved |
+
+These transitions establish six invariants:
+
+- Trigger evaluation happens after recording a finding and again after applying
+  a substantive fix. A newly repeated or sibling finding can therefore
+  interrupt before another symptom fix begins, while the iteration counter can
+  interrupt immediately after a completed fix.
+- Verification never establishes phase convergence. Any targeted verification
+  is followed by holistic discovery before Phase 1 may exit.
+- No review dispatch, phase advance, RFC implementation closure, commit, or PR
+  may bypass an `open` or `actioned` checkpoint.
+- The ledger persists across epochs, but a convergence-directed restart starts
+  a new epoch at counter zero. Old evidence cannot fire a new checkpoint until
+  new evidence in the active epoch establishes the trigger.
+- A checkpoint resumes its continuation token. Diagnosis labels never erase a
+  pending post-fix review obligation.
+- A resolved or escalated checkpoint starts a new epoch at counter zero before
+  ordinary review resumes. No checkpoint resumes inside its triggering epoch.
 
 ### Phase 1: Parallel review loop
 
-**1a. Gate: enforce the code-change contract** per `contracts/code-change.md`, then trigger reviewer. Use `code-review-analyst` via Task tool (no `max_turns` limit). The scope block is required input:
+**1a. Gate: enforce the code-change contract** per `contracts/code-change.md`, then trigger reviewer. Use `code-review-analyst` via Task tool (no `max_turns` limit). The first pass uses the discovery context lane. The scope block is required input:
 - If the change came from a plan, use that plan's scope block verbatim.
 - If the change is a direct dirty-tree edit with no prior plan, **synthesize the scope block from context** — derive Problem / In scope / Out of scope from the user's original request and the diff. A synthesized scope block is legitimate input per `contracts/code-change.md`; the contract requires *a* scope block, not specifically a plan-derived one.
 
@@ -122,13 +186,25 @@ Without this synthesis step the orchestrator gate fails and the flow stalls.
 **1b. Synthesize and fix:**
 - Classify each finding per `contracts/finding.md` (severity × scope).
 - Filter false positives; identify convergent concerns.
-- Add substantive findings and fixes to the review ledger.
+- Add substantive findings to the review ledger with lifecycle `open`.
 - Present succinct summary to the user per `policies/synthesis.md` output precedence.
-- Apply agreed fixes.
+- Follow the review control table: evaluate pattern triggers before applying an
+  agreed fix, then record each completed fix and perform the post-fix trigger
+  evaluation. Before that evaluation, record a continuation token with phase
+  `phase-1`, boundary `post-fix`, the chosen `verification` or `discovery` lane,
+  and the exact required review dispatch.
 
-**1c. Re-run reviews** on updated code. Repeat from 1a. If the same substantive issue repeats after a claimed fix, mark it as `repeated` in the review ledger rather than treating it as a fresh isolated comment.
+**1c. Re-run reviews** on updated code. A targeted re-review may use the
+verification lane, but after it completes re-run the entire applicable Phase 1
+review as a discovery pass before evaluating the Phase 1 exit condition. If a
+review result exposes the same substantive issue after a claimed fix, mark it
+as `repeated` in the ledger and evaluate the pattern triggers before applying
+another fix. All dispatches follow the review control table.
 
-**1d. Exit condition:** Stop when findings are marginal — minor stylistic nits, no new substantive issues, or repeats. State exit reason briefly.
+**1d. Exit condition:** Stop only after a holistic discovery pass reports
+marginal findings—minor stylistic nits or no new substantive issues—and no
+checkpoint blocks progress. A targeted verification result cannot satisfy this
+condition. State the exit reason briefly.
 
 ### Phase 2: Simplification
 
@@ -142,9 +218,38 @@ If changes touch security-sensitive areas (auth, crypto, input validation, permi
 
 If changes touch user-facing UI (components, layouts, flows, modals, forms, error states, onboarding), run `ux-reviewer` scoped to changed flows only. Run in parallel with 2.5 if both apply.
 
+### Phase 2.7: Specialist review synthesis and convergence gate
+
+Treat the applicable Phase 2.5/2.6 reviewers as one specialist-review batch for
+convergence control:
+
+1. Synthesize their findings per `policies/synthesis.md` and add substantive
+   findings to the review ledger. Evaluate pattern-based convergence triggers
+   before applying any agreed fix. If one fires, open the checkpoint with
+   a continuation token whose phase is `phase-2-review`, boundary is `pre-fix`,
+   lane is `specialist`, and next action is the pending finding disposition.
+2. When no checkpoint fires, apply agreed fixes. Record each completed
+   substantive fix, increment the active epoch's counter, and record a token
+   with phase `phase-2-review`, boundary `post-fix`, lane `specialist`, and next
+   action `re-run the applicable specialist-review batch`. Then perform the
+   post-fix trigger evaluation from the review control table.
+3. Before re-running an applicable specialist reviewer after a fix, honor any
+   checkpoint opened by the preceding evaluations.
+4. Re-run every applicable specialist reviewer whose surface changed until its
+   findings are marginal or resolved. If a re-run produces another substantive
+   finding and fix, repeat steps 1-4 before advancing.
+5. Before proceeding to the initial Phase 3 dispatch, evaluate the convergence
+   triggers again. Do not enter Phase 3 with a fired but unopened checkpoint.
+
 ### Phase 3: Final gating loop
 
-**3a. Run high-effort gating review** (in background):
+**3a. Before the initial and every repeated gating dispatch, honor any pending
+checkpoint and evaluate convergence triggers supported by the active epoch.**
+After a Phase 3 fix, the continuation token uses phase `phase-3`, boundary
+`post-fix`, lane `gating`, and required next action `run Phase 3 discovery
+gate`. Once the gate is clear, run high-effort gating review as a discovery pass
+(in background). Do not include the review ledger, prior findings, proposed
+root cause, or claimed fix in its prompt:
 ```bash
 codex -s danger-full-access -c model_reasoning_effort="xhigh" -m "gpt-5.5" review --uncommitted
 ```
@@ -158,23 +263,52 @@ claude --dangerously-skip-permissions --effort max -p "$(cat ~/.claude/sidekick-
 
 Fallback step 2: Launch `code-review-analyst` via Agent tool with adversarial framing: *"I know there is at least 1 hidden P1 in the uncommitted changes — your job is to find it. If after thorough investigation you determine no P1 exists, state that explicitly with your reasoning."*
 
-**3b. Address critical findings.** If P1 issues are found, add them to the review ledger, fix, and re-run. Codex path: re-run 3a. Fallback path: re-run *both* fallback step 1 and step 2 on the fix (do not retry Codex). Re-running step 2 is required because if the adversarial reviewer caught the P1, only it can verify the fix is complete — trusting step 1 alone risks landing an incomplete fix that reintroduces the same P1 in a different surface.
-
-Before re-running, check whether Phase 3.5 is triggered. Do not keep patching the latest P1 if the ledger shows non-convergence.
+**3b. Address critical findings.** If P1 issues are found, add them to the
+review ledger and follow the review control table: evaluate pattern triggers
+before fixing, then record and evaluate again after each substantive fix. When
+the checkpoint gate remains clear, re-run 3a. Codex path: re-run 3a. Fallback
+path: re-run *both* fallback step 1 and step 2 on the fix (do not retry Codex).
+Re-running step 2 is required because if the adversarial reviewer caught the
+P1, only it can verify the fix is complete—trusting step 1 alone risks landing
+an incomplete fix that reintroduces the same P1 in a different surface.
 
 **3c. Exit condition:** Stop when gating review surfaces no P1 findings. P2/P3 don't block. State exit reason.
 
-### Phase 3.5: Convergence diagnosis checkpoint
+### Cross-phase convergence diagnosis checkpoint
 
-Triggered during Phase 3 before another gating re-run when any of these are true:
+Triggered from Phase 1, the conditional specialist-review batch, or Phase 3
+before another substantive review/fix iteration when active-epoch evidence
+shows any of these are true:
 
-- Three substantive review/fix iterations have occurred across Phases 1-3.
+- Three substantive review/fix iterations have occurred in the active epoch
+  across Phases 1-3,
+  including the conditional specialist-review batch.
 - A P1 repeats after a claimed fix.
 - New P1s keep appearing in sibling surfaces after each fix.
 - Reviewers repeatedly point at unclear requirements, missing invariants, ownership confusion, or cross-cutting behavior.
 - The fix path expands across modules without reducing review severity.
 
-This is not a hard cutoff. It is a pattern-analysis interrupt: stop asking "how do I fix this comment?" and ask "what unresolved design or requirement decision keeps producing this class of comments?"
+Evaluate pattern-based triggers when substantive findings are recorded, before
+another fix begins. Evaluate the counter threshold and all pattern triggers
+again after every substantive fix, before dispatch or phase advance. Once any
+trigger fires it is a hard gate: create an `open` convergence checkpoint in the
+review ledger and stop asking "how do I fix this comment?" Ask "what unresolved
+design or requirement decision keeps producing this class of comments?" No
+ordinary review/fix iteration may continue until the checkpoint records a
+diagnosis and action.
+
+When opening the checkpoint, record the active review epoch and a complete
+continuation token per `contracts/review-ledger.md`. Construct the token from
+the actual interruption boundary:
+
+- `pre-fix` resumes the pending finding disposition or agreed fix.
+- `post-fix` resumes the required verification, holistic discovery, specialist
+  re-review, or gating discovery; it never resumes a phase exit.
+- `pre-dispatch` resumes the exact review dispatch that was about to run.
+- `phase-exit` is valid only when no fix or review obligation remains.
+
+The checkpoint is an interrupt, not a phase jump. Unless its diagnosis requires
+a new-epoch restart or user decision, control returns to this token.
 
 1. **Prepare ledger summary.** Summarize the review ledger into:
    - repeated findings
@@ -187,29 +321,66 @@ This is not a hard cutoff. It is a pattern-analysis interrupt: stop asking "how 
 2. **Launch convergence analyst.** Launch `review-convergence-analyst` via Task tool with the original scope block, current diff summary, review ledger summary, and latest review output. If delegation is unavailable or not permitted, the orchestrator performs the same diagnosis locally and states that independence is degraded.
 
 3. **Classify diagnosis:**
-   - `no-common-root-cause` — findings are independent; continue Phase 3 and reset the substantive-iteration counter for this cluster.
+   - `no-common-root-cause` — findings are independent; begin a new review epoch
+     at counter zero and resume the recorded continuation token.
    - `local-design-flaw` — an in-scope abstraction, invariant, ownership boundary, or data flow is wrong or missing.
    - `requirement-ambiguity` — product or behavior is underspecified; ask the user before more coding.
    - `scope-collision` — the architectural fix is larger than the declared scope.
    - `reviewer-noise` — comments are marginal, repeated, or false-positive enough that continuing the loop is not productive.
 
 4. **Act on diagnosis:**
-   - `no-common-root-cause` → continue Phase 3.
-   - `local-design-flaw` fixable in scope → implement the architectural fix, then restart Code Review Flow from Phase 1 with the ledger carried forward.
-   - `requirement-ambiguity` → pause and ask the user the smallest concrete requirement question that unblocks convergence.
-   - `scope-collision` → surface the collision and ask whether to expand scope or create a blocking follow-up task.
-   - `reviewer-noise` → classify remaining findings as marginal/repeats and exit Phase 3 if no P1 remains.
+   - Record the diagnosis and selected action in the checkpoint before acting.
+   - Apply these status rules to every user decision:
+     - If the decision confirms the existing requirement and requires no scope,
+       plan/RFC, or implementation change, mark the checkpoint `resolved` with
+       that evidence, start a new review epoch at counter zero, and resume its
+       continuation token.
+     - If the decision changes required behavior or scope, mark the checkpoint
+       `actioned`. Update the scope block and accepted plan/RFC, rerun Plan
+       Review Flow when the accepted plan contract changed, implement the
+       decision, then start a new review epoch at counter zero and restart Code
+       Review Flow from Phase 1 with the ledger carried forward. Only a clean
+       restarted Phase 3 discovery result may mark it `resolved`.
+     - Use `escalated` only when the user explicitly accepts proceeding with a
+       durable blocking follow-up. Record both the follow-up and acknowledgment
+       as status evidence, then start a new review epoch at counter zero before
+       resuming the continuation token or downstream flow.
+   - `no-common-root-cause` → mark the checkpoint `resolved` with the cluster
+     analysis, increment the review epoch, reset its counter to zero, then
+     resume the recorded continuation token.
+   - `local-design-flaw` fixable in scope → mark the checkpoint `actioned`,
+     implement the architectural fix, then increment the review epoch, reset its
+     counter to zero, and restart Code Review Flow from Phase 1 with the ledger
+     carried forward. The restarted Phase 3 discovery result becomes status
+     evidence; only then mark it `resolved`.
+   - `requirement-ambiguity` → keep the checkpoint `open`, pause, and ask the
+     user the smallest concrete requirement question that unblocks
+     convergence. Apply the decision status rules above; do not resolve merely
+     because the user answered.
+   - `scope-collision` → keep the checkpoint `open`, surface the collision, and
+     ask whether to expand scope or create a blocking follow-up task. Record
+     the decision, then apply the status rules above.
+   - `reviewer-noise` → if the trigger evidence is established as marginal or
+     false-positive and no P1 remains `open` awaiting action, mark the checkpoint
+     `resolved`, increment the review epoch, reset its counter to zero, then
+     resume the continuation token. A P1 that is `actioned` and awaiting its
+     recorded post-fix review does not block this resume. A phase exit occurs
+     only when the token boundary is `phase-exit`; any pre-fix, post-fix, or
+     pre-dispatch obligation still runs.
 
-5. **Iteration cap:** Max 1 convergence-driven restart to Phase 1. If the restarted flow triggers Phase 3.5 again for the same cluster, escalate to the user with the ledger summary rather than continuing to loop.
+5. **Iteration cap:** Max 1 convergence-driven restart to Phase 1. If the restarted flow triggers the convergence checkpoint again for the same cluster, escalate to the user with the ledger summary rather than continuing to loop.
+
+6. **Exit gate:** Phase 4, RFC implementation closure, commit, and PR are
+blocked while any convergence checkpoint is `open` or `actioned`.
 
 ### Phase 4: Root-cause synthesis
 
-**Skip condition:** If no P1s surfaced during Phases 1-3 and Phase 3.5 did not run, skip entirely.
+**Skip condition:** If no P1s surfaced during Phases 1-3 and the convergence checkpoint did not run, skip entirely.
 
-Review all P1 findings surfaced and fixed across Phases 1-3 plus any Phase 3.5 diagnosis. Goal: identify underlying design flaw(s) whose symptoms the review findings were and confirm whether the convergence action resolved them.
+Review all P1 findings surfaced and fixed across Phases 1-3 plus any convergence-checkpoint diagnosis. Goal: identify underlying design flaw(s) whose symptoms the review findings were and confirm whether the convergence action resolved them.
 
 1. **Collect** — list every P1 and the fix applied.
-2. **Cluster** — group P1s and Phase 3.5 evidence clusters that share a common root cause.
+2. **Cluster** — group P1s and convergence-checkpoint evidence clusters that share a common root cause.
 3. **Diagnose** — for each cluster, name the design-level flaw. Ask: *"What structural decision made this class of bug possible?"*
 4. **Assess** — are fixes symptomatic patches or do they resolve the design flaw? If latent, flag as blocking concern.
 5. **Act:**

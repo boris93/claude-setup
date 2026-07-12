@@ -27,6 +27,6 @@ If the relative paths are unavailable, try the same files under the configured C
 
 1. Re-read the original scope block and use its narrowest faithful meaning.
 2. Treat all findings as subtractive: remove, compress, or reclassify content.
-3. Protect content that directly resolves prior blocking or significant Phase 1 findings.
+3. Protect content required by the plan contract and content that directly resolves prior blocking or significant Phase 1 findings.
 4. Do not propose alternative architectures; that belongs to $rfc-reviewer.
 5. Tag every finding by severity and scope.

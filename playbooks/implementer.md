@@ -31,6 +31,10 @@ Do not silently expand scope because implementation surfaced an opportunity. Sco
 
 **Never commit without completing the full Code Review Flow first.** The Code Review Flow is defined in `~/.claude/playbooks/orchestrator.md` — running it means switching to the orchestrator role (load that playbook, execute the flow, then return here to create the commit).
 
+The flow is incomplete while any convergence checkpoint in the review ledger
+is `open` or `actioned`. A clean reviewer rerun does not implicitly close the
+checkpoint; its diagnosis and status evidence must be recorded.
+
 This is non-negotiable. Exceptions:
 
 - If scope or time pressure tempts you to skip review, that is a signal to **narrow the commit scope** (smaller diff, fewer concerns), not to skip review.

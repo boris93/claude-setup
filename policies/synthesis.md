@@ -62,7 +62,7 @@ Distinct artifacts with different user expectations:
 | Deferred finding | No | No (just surfaced) | `deferred_` memory |
 | Follow-up task | Until acknowledged | Yes | Presented inline, user decides |
 
-A latent design flaw surfaced during Code Review Flow Phase 3.5 convergence diagnosis or Phase 4 root-cause synthesis is a follow-up task, not a deferred finding — the distinction is that follow-ups require explicit user acknowledgment before proceeding.
+A latent design flaw surfaced during the Code Review Flow convergence checkpoint or Phase 4 root-cause synthesis is a follow-up task, not a deferred finding — the distinction is that follow-ups require explicit user acknowledgment before proceeding.
 
 ## Malformed findings
 

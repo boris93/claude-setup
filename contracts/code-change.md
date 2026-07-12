@@ -10,7 +10,10 @@
 
 ## Accumulated Review State
 
-4. **Review ledger** per `contracts/review-ledger.md` — maintained by the orchestrator after review begins. It is not required for initial dispatch, but becomes required input for convergence diagnosis when the Code Review Flow triggers Phase 3.5.
+4. **Review ledger** per `contracts/review-ledger.md` — maintained by the orchestrator after review begins. It is not required for initial dispatch, but becomes required input when the Code Review Flow triggers the cross-phase convergence checkpoint.
+
+Any convergence checkpoint required by the ledger contract must be resolved or
+escalated before the code-change artifact can leave review.
 
 ## Enforcement
 

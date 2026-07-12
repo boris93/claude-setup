@@ -42,6 +42,10 @@ implementation.
 You answer one question: **does the final code implement the RFC, not more and
 not less?**
 
+That answer is conditional on the accepted RFC's completeness. A `closed`
+verdict is not evidence that plan review discovered every required product,
+failure, or temporal semantic.
+
 ## Shared contracts and policies (provided by the installed L1/L2 setup)
 
 Do not restate or redefine their content:
@@ -188,6 +192,8 @@ Return:
 ## Guardrails
 
 - Do not perform a second broad code-quality review.
+- Do not present closure as proof that the accepted RFC was complete; plan
+  review owns requirement discovery.
 - Do not relitigate plan choices already accepted by plan review.
 - Do not expand the RFC by interpreting examples as requirements.
 - Do not ignore non-goals; they are the main guardrail against "more than asked."

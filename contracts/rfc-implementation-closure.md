@@ -14,6 +14,11 @@ behavior is justified, and deviations are documented before commit or PR.
 
 It is a traceability artifact, not a second code-quality review.
 
+Closure also does not prove that the RFC itself was complete. A `closed`
+verdict means the implementation matches the accepted requirements; it cannot
+discover temporal, product, or failure semantics the accepted artifact never
+specified. Plan review owns requirement completeness.
+
 ## Required Inputs
 
 1. **RFC or plan** — the original accepted artifact, including scope block,

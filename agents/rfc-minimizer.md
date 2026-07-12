@@ -56,9 +56,17 @@ The orchestrator has already enforced the plan contract before dispatch. Do not 
 
 Re-read the scope block (Problem / In scope / Out of scope) carefully. Internalize the **narrowest faithful restatement** of what the plan must address. This is your benchmark for every finding.
 
+Content required by `contracts/plan.md` is load-bearing by contract even when
+no Phase 1 finding caused it to be added. In particular, when a temporal trigger
+applies, do not propose removing or weakening required canonical event coverage,
+effect ordering, execution ownership, concurrency constraints, or adversarial
+composition cases. You may minimize that material only by demonstrating that
+the trigger itself does not apply; in that case, propose removing the whole
+conditional section rather than selectively deleting required coverage.
+
 ### Step 2: Apply the minimality lenses
 
-**2.1 Scope-block check** — for each plan section/item, can you trace it to a specific line of the scope block (Problem or In scope)? Items not traceable are candidates for removal or out-of-scope reclassification.
+**2.1 Scope-block check** — for each plan section/item, can you trace it to a specific line of the scope block (Problem or In scope) or to a requirement of `contracts/plan.md` triggered by that scope? Items traceable to neither are candidates for removal or out-of-scope reclassification.
 
 **2.2 Right-sizing check** — apply the planner's right-sizing test as a review lens (see `playbooks/planner.md`). For each plan item, is it (a) required for the stated request, (b) a prerequisite the request cannot be solved without, or (c) required to preserve an invariant the change touches? Items satisfying none of these are scope inflation.
 
@@ -72,7 +80,11 @@ Re-read the scope block (Problem / In scope / Out of scope) carefully. Internali
 
 ### Step 3: Phase 1 finding check (mandatory before flagging blocking)
 
-Before tagging any finding as `blocking`, verify: would removing this content **reintroduce the gap** that a **documented Phase 1 finding at `blocking` or `significant` severity** flagged (red-team scenario, UX persona requirement, rfc-reviewer constraint)?
+Before tagging any finding as `blocking`, first verify that the content is not
+required by the plan contract. Then verify: would removing this content
+**reintroduce the gap** that a **documented Phase 1 finding at `blocking` or
+`significant` severity** flagged (red-team scenario, UX persona requirement,
+rfc-reviewer constraint)?
 
 The test is behavioral, not abstract: ask *"did this plan content close the gap the finding identified, and would removing it reopen that gap?"* — not *"is the finding still abstractly valid?"*
 
