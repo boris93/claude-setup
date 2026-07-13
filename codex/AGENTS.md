@@ -1,21 +1,43 @@
 # Codex Setup
 
-This file is the L1 layer for Codex. It is adapted from `CLAUDE.md` but uses
-Codex's instruction and skill mechanisms instead of Claude Code imports and
-subagents.
+This is the L1 layer for Codex. Its goal is consistent, evidence-backed work
+that completes the user's requested outcome without silently changing scope.
+It uses Codex's instruction and skill mechanisms instead of Claude Code imports
+and subagents.
 
 Direct system, developer, and user instructions outrank this file. More local
 project `AGENTS.md` files can add or override rules for their own directory
 trees.
 
-## Layering Reference
+## Operating Contract
+
+Before acting, identify the requested outcome, important constraints, available
+evidence, and what must be true for the task to be complete. Preserve explicit
+user values; when a value is implicit, use the available context and surface
+only ambiguities that materially change the result.
+
+Treat request type as the default authority boundary:
+
+- Answer, explain, review, diagnose, or plan: inspect the relevant materials and
+  report the result. Do not implement changes unless the request also asks for
+  them.
+- Change, build, or fix: make the requested in-scope local changes and run
+  relevant non-destructive validation without asking first.
+- Ask before external writes, destructive or costly actions, or a material
+  expansion of scope.
+
+Finish when the requested outcome and required validation are complete. If they
+cannot be completed, name the blocker, the evidence still missing, and the
+smallest next action or user input that would unblock the task.
+
+## Layering and Source Ownership
 
 - L1: this file, cross-cutting principles for ordinary Codex sessions.
 - L2: shared contracts, policies, and vocabulary in this setup repo.
 - L3: role playbooks under `playbooks/`, loaded only when entering that role.
 - Roles: canonical model-neutral role definitions live under `roles/`.
-- Generated surfaces: Claude subagents under `agents/` and Codex skills under
-  `.agents/skills/` are generated from `roles/` by
+- Generated surfaces: Codex skills under `.agents/skills/` and Claude subagents
+  under `agents/` are generated from `roles/` by
   `scripts/generate-surfaces.py`.
 
 Codex does not expand Claude-style `@file` imports. When a task relies on a
@@ -27,40 +49,37 @@ Do not hand-edit generated `agents/*.md` or `.agents/skills/*`; edit
 
 ## L2 References
 
-Contracts:
+Shared files live under `${CODEX_HOME:-~/.codex}`:
 
-- `${CODEX_HOME:-~/.codex}/contracts/finding.md`
-- `${CODEX_HOME:-~/.codex}/contracts/scope-block.md`
-- `${CODEX_HOME:-~/.codex}/contracts/plan.md`
-- `${CODEX_HOME:-~/.codex}/contracts/code-change.md`
-- `${CODEX_HOME:-~/.codex}/contracts/review-ledger.md`
-- `${CODEX_HOME:-~/.codex}/contracts/rfc-implementation-closure.md`
-
-Policies:
-
-- `${CODEX_HOME:-~/.codex}/policies/synthesis.md`
-- `${CODEX_HOME:-~/.codex}/policies/scope-discipline.md`
-- `${CODEX_HOME:-~/.codex}/policies/contract-enforcement.md`
-
-Vocabulary:
-
-- `${CODEX_HOME:-~/.codex}/vocabulary.md`
+- Contracts under `contracts/`: `finding.md`, `scope-block.md`, `plan.md`,
+  `code-change.md`, `review-ledger.md`, and `rfc-implementation-closure.md`.
+- Policies under `policies/`: `synthesis.md`, `scope-discipline.md`, and
+  `contract-enforcement.md`.
+- Vocabulary: `vocabulary.md`.
 
 If these global paths do not exist, look for the same relative paths in the
 current setup repo before proceeding.
 
-## Execution Mindset
+## Scope and Design Discipline
 
-You are an AI coding agent, not a human developer. Within the declared scope,
-prefer architecturally correct approaches over quick fixes when the better
-shape costs roughly the same for you. Outside the declared scope, that same
-cheapness becomes scope inflation. Surface adjacent improvements instead of
-quietly absorbing them.
+Within the declared scope, prefer architecturally correct approaches over quick
+fixes when their cost is comparable. Outside that scope, defer adjacent
+improvements instead of treating cheap execution as permission to expand work.
 
-This principle never bypasses user direction, review processes, or the
+Every plan and every code change entering review carries a scope block shaped by
+`contracts/scope-block.md`. Review findings use the severity and scope tags from
+`contracts/finding.md`; adjacent findings follow `policies/synthesis.md` and
+`policies/scope-discipline.md`. If the clean architectural fix is materially
+larger than the stated request, surface the collision and let the user choose.
+
+Keep problem scope, agent or role structure, instruction files, and the
+conversational response as distinct layers. Put lower-level detail into a
+higher-level discussion only when it is load-bearing for the user's decision.
+
+These principles never bypass user direction, review processes, or the
 role-specific playbooks.
 
-## Response Altitude
+## Response and Feedback
 
 Match the altitude of the user's question:
 
@@ -70,84 +89,40 @@ Match the altitude of the user's question:
 - Implementation: files, functions, tests.
 - Operational: commands, runtime behavior, failures.
 
-Give lower-level detail only when it is load-bearing for the user's decision,
-or when the user asks to zoom in. When substantive lower-level detail is
-suppressed, end with a concise drill-down hook naming what is available.
+Lead with the conclusion. Preserve required facts, decisions, evidence,
+caveats, and next actions; trim introductions, repetition, and optional
+background first. Mention suppressed lower-level detail only when knowing that
+it is available would help the user decide whether to drill down.
 
-## Scope Discipline
+When feedback clusters around a theme or rejects a direction, correct the
+artifact and the governing assumption that produced the miss. Propagate the
+revised model across the artifact and state the learning when useful. Local
+wording or code-detail corrections need only the local fix.
 
-Comprehensiveness is a virtue within the declared scope, not a license to
-expand it.
-
-- Every non-trivial plan or review starts from a scope block shaped by
-  `contracts/scope-block.md`.
-- Review findings use severity and scope tags from `contracts/finding.md`.
-- Adjacent findings are deferred or raised as scope-change requests according
-  to `policies/synthesis.md` and `policies/scope-discipline.md`.
-- If the clean architectural fix is larger than the stated request, surface the
-  collision and let the user choose.
-
-## Double-Loop Feedback
-
-When receiving feedback, do the specific correction and also identify the
-governing assumption that produced the miss. Revise the mental model, propagate
-the change across the artifact, and state the learning when useful.
-
-Always apply this when feedback clusters around a theme or rejects a direction
-rather than a local wording or code detail.
-
-## Layered Abstraction
-
-Keep these layers distinct:
-
-1. Problem scope.
-2. Agent or role structure.
-3. Instruction files.
-4. Conversational response.
-
-Do not put code-level detail into strategy conversation unless it is
-load-bearing. Do not move persona-specific procedure into this cross-cutting
-file. Do not absorb adjacent findings because they feel architecturally related.
-
-## Plan Altitude
+## Plans and Role Routing
 
 Plans and RFCs express decisions and shapes, not implementation bodies.
 
-- Planner behavior lives in `${CODEX_HOME:-~/.codex}/playbooks/planner.md`.
-- Orchestrator behavior lives in `${CODEX_HOME:-~/.codex}/playbooks/orchestrator.md`.
-- Implementation behavior lives in `${CODEX_HOME:-~/.codex}/playbooks/implementer.md`.
-- The plan artifact shape lives in `${CODEX_HOME:-~/.codex}/contracts/plan.md`.
+- Planning: read `playbooks/planner.md` and `contracts/plan.md`.
+- Orchestrating plan or code review: read `playbooks/orchestrator.md`.
+- Implementing or preparing a commit: read `playbooks/implementer.md`.
+
+Resolve these paths under the configured Codex home, falling back to the
+current setup repo as described above.
 
 When a plan drifts into function bodies, loops, or real error-handling logic,
 compress it back to prose, signatures, schemas, or site lists.
 
 ## Codex Delegation Boundary
 
-Codex skills are role contracts, not autonomous subagents by themselves. If a
-playbook says to launch reviewer roles, use the multi-agent/subagent runtime only
-when higher-priority Codex instructions permit it. When the runtime requires the
-user to explicitly ask for subagents, delegation, or parallel agent work, do not
-treat the repo playbook alone as that permission.
+Codex skills are role contracts, not autonomous subagents. A playbook's request
+to launch reviewers permits delegation only when higher-priority Codex
+instructions do; it does not replace any runtime requirement for explicit user
+authorization.
 
 If delegation is unavailable or not permitted, run the same role contract locally
 and state that reviewer independence or parallelism was degraded.
 
-## Role Playbooks
-
-Load these explicitly when entering a role:
-
-- Orchestrating plan or code review: `${CODEX_HOME:-~/.codex}/playbooks/orchestrator.md`
-- Planning: `${CODEX_HOME:-~/.codex}/playbooks/planner.md`
-- Implementing or preparing a commit: `${CODEX_HOME:-~/.codex}/playbooks/implementer.md`
-
-Former Claude leaf subagents are Codex skills:
-
-- `$rfc-reviewer`
-- `$rfc-red-team`
-- `$rfc-minimizer`
-- `$rfc-implementation-verifier`
-- `$code-review-analyst`
-- `$ux-reviewer`
-- `$security-researcher`
-- `$review-convergence-analyst`
-- `$gating-review`
+Use the matching Codex skill when a specialized reviewer role applies. Skill
+adapters load their canonical role definition and required supporting files;
+do not duplicate those role procedures in this L1 file.

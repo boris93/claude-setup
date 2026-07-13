@@ -1,18 +1,17 @@
-# Claude / Codex Setup
+# Codex / Claude Setup
 
-Opinionated AI coding-agent configuration: layered principles, shared contracts
-and policies, persona playbooks, canonical role definitions, generated Claude
-Code subagents, and generated Codex skill adapters.
+Codex-primary, Claude-compatible coding-agent configuration: layered
+principles, shared contracts and policies, persona playbooks, canonical role
+definitions, generated Codex skill adapters, and generated Claude Code
+subagents.
 
 ## Structure
 
 ```
-CLAUDE.md                     # Claude L1 cross-cutting principles (execution mindset, response altitude,
-                              #   scope discipline, double-loop, layered abstraction, plan altitude).
-                              #   Imports L2 via @-syntax.
 AGENTS.md                     # Repo-local Codex instructions for maintaining this setup repo.
-codex/AGENTS.md               # Codex L1 cross-cutting principles. Same setup, adapted to
+codex/AGENTS.md               # Primary Codex L1 cross-cutting principles, adapted to
                               #   Codex's explicit file loading and skill mechanisms.
+CLAUDE.md                     # Claude-compatible L1 principles. Imports L2 via @-syntax.
 contracts/                    # L2 — shapes of artifacts flowing between agents
   finding.md                  #   finding shape (severity × scope tags, required fields)
   scope-block.md              #   Problem / In scope / Out of scope shape
@@ -32,6 +31,7 @@ playbooks/                    # L3 — persona-specific procedures, loaded on-de
   orchestrator.md             #   Plan Review Flow + Code Review Flow (owns contract enforcement)
   planner.md                  #   plan mode protocol, plan completeness test, authoring guidance
   implementer.md              #   implementation discipline, commit gating
+.agents/skills/               # Generated Codex skill adapters (do not edit directly)
 agents/                       # Generated Claude Code subagents (do not edit directly)
   rfc-reviewer.md             #   structured plan audit (soundness)
   rfc-red-team.md             #   adversarial plan scenarios (robustness)
@@ -42,7 +42,6 @@ agents/                       # Generated Claude Code subagents (do not edit dir
   security-researcher.md      #   attack surface decomposition
   review-convergence-analyst.md # review-loop convergence diagnosis
 sidekick-prompts/             # Reusable prompts (gating-review.md)
-.agents/skills/               # Generated Codex skill adapters (do not edit directly)
 scripts/generate-surfaces.py  # Generates agents/ and .agents/skills/ from roles/
 ```
 
@@ -59,8 +58,8 @@ See `vocabulary.md` for the full decomposition and how to decide where a new rul
 `roles/*.md` is the source of truth for reusable reviewer roles. The generated
 runtime surfaces are:
 
-- `agents/*.md` for Claude Code subagents.
 - `.agents/skills/*` for Codex skills.
+- `agents/*.md` for Claude Code subagents.
 
 After editing `roles/*.md`, regenerate and validate:
 
@@ -71,25 +70,6 @@ scripts/generate-surfaces.py --check
 
 Both installers run `scripts/generate-surfaces.py --check` and fail if the
 generated surfaces are stale.
-
-## Claude Usage
-
-Clone and run the installer from the repo root:
-
-```bash
-git clone https://github.com/<you>/claude-setup.git ~/projects/claude-setup
-~/projects/claude-setup/install.sh
-```
-
-The installer first checks that generated surfaces are current, then symlinks
-`CLAUDE.md`, `vocabulary.md`, `roles/`, `agents/`, `contracts/`,
-`policies/`, `playbooks/`, and `sidekick-prompts/` into `~/.claude`. It is
-idempotent — re-run it after `git pull` whenever the repo's structure changes
-(new directories, renamed files). Existing correct symlinks are left alone;
-stale symlinks are updated. A real file or directory blocking a target is
-reported but never overwritten.
-
-Claude Code picks these up automatically across all projects once the symlinks are in place.
 
 ## Codex Usage
 
@@ -117,6 +97,27 @@ Codex then picks up the global `AGENTS.md` on startup and exposes the role
 adapters as skills such as `$rfc-reviewer`, `$rfc-red-team`,
 `$rfc-implementation-verifier`, `$code-review-analyst`, `$ux-reviewer`,
 `$security-researcher`, `$review-convergence-analyst`, and `$gating-review`.
+
+## Claude Usage
+
+Claude Code remains a supported compatibility surface. Clone and run its
+installer from the repo root:
+
+```bash
+git clone https://github.com/<you>/claude-setup.git ~/projects/claude-setup
+~/projects/claude-setup/install.sh
+```
+
+The installer first checks that generated surfaces are current, then symlinks
+`CLAUDE.md`, `vocabulary.md`, `roles/`, `agents/`, `contracts/`,
+`policies/`, `playbooks/`, and `sidekick-prompts/` into `~/.claude`. It is
+idempotent — re-run it after `git pull` whenever the repo's structure changes
+(new directories, renamed files). Existing correct symlinks are left alone;
+stale symlinks are updated. A real file or directory blocking a target is
+reported but never overwritten.
+
+Claude Code picks these up automatically across all projects once the symlinks
+are in place.
 
 ## License
 

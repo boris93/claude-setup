@@ -251,8 +251,12 @@ gate`. Once the gate is clear, run high-effort gating review as a discovery pass
 (in background). Do not include the review ledger, prior findings, proposed
 root cause, or claimed fix in its prompt:
 ```bash
-codex -s danger-full-access -c model_reasoning_effort="xhigh" -m "gpt-5.5" review --uncommitted
+codex -s danger-full-access -c model_reasoning_effort="xhigh" review --uncommitted
 ```
+
+Use the configured Codex model for this gate. The playbook fixes the review
+effort, not a model version, so the gate follows the operator's selected model
+without accumulating a stale override.
 
 **Fallback** (triggers only after Codex has fully terminated): If Codex fails (non-zero exit, rate limits, errors), run the Claude CLI fallback and code-review-analyst adversarial pass in parallel:
 
