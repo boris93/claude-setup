@@ -10,12 +10,18 @@ Aggregate findings by (severity × scope), not as a flat list.
 
 |              | in-scope                    | adjacent                                            | out-of-scope         |
 |--------------|-----------------------------|-----------------------------------------------------|----------------------|
-| blocking     | fix now                     | **escalate — scope-change request** (not deferred)  | discard with note    |
-| significant  | fix unless user defers      | defer                                               | discard              |
+| blocking     | resolve obligation now      | **escalate — scope-change request** (not deferred)  | discard with note    |
+| significant  | resolve unless user defers  | defer                                               | discard              |
 | acknowledged | document                    | defer                                               | discard              |
 | strength     | note                        | skip                                                | skip                 |
 
 **Special case — `blocking × adjacent`:** A blocking-severity finding outside declared scope signals that scope itself may be too narrow. It does NOT defer. Instead, raise a scope-change request per `policies/scope-discipline.md`. Deferring a real blocker is a process bug; the matrix forces escalation.
+
+"Resolve obligation" applies to the finding's missing behavior or invariant,
+not automatically to its suggested mechanism. Synthesis preserves the
+obligation while the orchestrator selects the remedy with the least new
+semantic surface per `policies/scope-discipline.md`. A familiar architectural
+name does not turn its conventional responsibilities into in-scope work.
 
 ## Output precedence when presenting to the user
 

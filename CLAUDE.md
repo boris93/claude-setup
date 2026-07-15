@@ -54,6 +54,13 @@ Default is altitude-*matched*, not altitude-*capped* — never shy away from dep
 
 Comprehensiveness is a virtue *within* the declared problem scope, not a license to expand it.
 
+Architecture may discharge obligations; it does not create them. Scope binds
+required outcomes and existing invariants, not responsibilities implied by an
+architectural label, familiar pattern, or reviewer's suggested mechanism.
+Introduce new state, authority, lifecycle, protocol, operator surface, or
+generality only when omitting it would violate the scoped outcome or a touched
+invariant. Otherwise narrow, reuse, inline, remove, or defer it.
+
 - Every non-trivial task begins with a scope block per `contracts/scope-block.md`.
 - Reviewers surface findings; synthesis routes adjacent findings to deferred per `policies/synthesis.md`.
 - Do not absorb adjacent findings into the current change because they are "architecturally connected."

@@ -97,6 +97,21 @@ indicates a gate miss), flag it as a malformed-input complaint and decline to
 produce findings — but this is defense in depth, not your primary
 responsibility.
 
+### Obligation and mechanism boundary
+
+Scope binds required outcomes and existing invariants, not responsibilities
+conventionally associated with an architectural label or familiar pattern. The
+review lenses below are prompts for examining load-bearing behavior, not a list
+of facilities every production design must acquire.
+
+For each blocking or significant concern, identify the scoped outcome or
+touched invariant that would fail. If the concern exists only because the plan
+introduced an optional mechanism, prefer a finding that narrows, inlines, or
+removes that mechanism while preserving the obligation. Do not turn a subsystem
+name into requirements. Suggested resolutions are advisory and should prefer
+the least new state, authority, lifecycle, protocol, operator surface, and
+generality that closes the demonstrated gap.
+
 ### Step 1: Context Gathering
 
 Examine:
@@ -133,9 +148,15 @@ If the RFC proposes a fix, patch, or workaround, interrogate the problem itself 
 
 ### Step 4: Alternative Approaches
 
-Identify 2–3 alternatives. For each, assess efficiency, coherence, maintainability, implementation effort. Is the chosen approach optimal?
+For load-bearing architecture decisions with a materially different plausible
+shape, identify alternatives and assess efficiency, coherence, maintainability,
+and implementation effort. Do not manufacture an alternatives exercise for a
+settled local choice. A chosen approach is blocking as suboptimal only when it
+cannot satisfy a scoped requirement or touched invariant, or when it
+necessarily introduces an unjustified architectural commitment. Preference for
+a cleaner or more familiar pattern is not blocking.
 
-**Approach Verdict:** ✅ OPTIMAL / 🔄 ALTERNATIVE WORTH CONSIDERING / 🚫 SUBOPTIMAL CHOICE (blocking)
+**Approach Verdict:** ✅ OPTIMAL / 🔄 ALTERNATIVE WORTH CONSIDERING / 🚫 SUBOPTIMAL CHOICE (blocking only under the threshold above)
 
 ### Step 5: Novel Pattern Assessment
 
@@ -145,7 +166,14 @@ When encountering unconventional patterns: describe objectively, assess from fir
 
 ### Step 6: Failure Mode Analysis
 
-Systematically walk every component, service boundary, and state transition the RFC introduces. For each:
+Systematically walk every component, service boundary, and state transition the
+RFC currently retains. If a component is not justified by a scoped outcome or
+touched invariant, raise the narrower scope/minimality concern first. Until its
+removal is accepted and reflected in the artifact, still audit its concrete
+failure impact; phrase resulting findings as conditional on retaining it and
+prefer removal or narrowing over adding responsibilities. Optionality does not
+make retained behavior safe, and a retained mechanism's hazards do not make the
+mechanism necessary. For each retained component:
 
 1. **What fails?** Process crash / OOM, dependency unavailable, slow dependency (timeout vs hang — which does the RFC assume?), corrupt/unexpected input, resource exhaustion.
 2. **What is the blast radius?** Contained or cascading? Shared resources poisoned? Can one tenant take down the whole system?
@@ -216,12 +244,17 @@ Unsurfaced assumptions are the #1 cause of "we built the wrong thing."
 
 ### Step 10: Operational Readiness
 
+Calibrate this lens to the system's actual deployment context and the plan's
+scoped obligations. The items below are possible operational needs, not
+universal requirements imported by words such as service, authority, manager,
+or control plane.
+
 1. **Observability** — logs with context, metrics for throughput/latency/errors/resources, end-to-end tracing, appropriate log levels
 2. **Debuggability** — inspect current state without stopping, actionable error messages, reproducible from logs, dynamic verbosity
 3. **Graceful degradation** — reduced service vs fall-over, circuit breakers, backpressure, restart individual components
 4. **Operational controls** — drain/pause/disable affordances, config hot-reload where appropriate, layered health checks (healthy/degraded/broken)
 
-**Operational Readiness Verdict:** ✅ PRODUCTION-READY / ⚠️ OPERATIONAL GAPS / 🚫 NOT OPERABLE (blocking for production)
+**Operational Readiness Verdict:** ✅ PRODUCTION-READY / ⚠️ OPERATIONAL GAPS / 🚫 NOT OPERABLE (blocking for production only when a concrete omission scenario violates a scoped outcome or touched invariant)
 
 ## Output
 

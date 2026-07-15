@@ -40,6 +40,14 @@ This is **not** "minimum change at any cost" — that produces **patchwork**: a 
 
 Every plan item must be either (a) required for the user's stated request, (b) a prerequisite the request cannot be solved without, or (c) required to preserve an invariant the change touches per Q3 of the completeness test below. Items satisfying none of these are **scope inflation** — defer per `policies/scope-discipline.md`. (b) and (c) items (auth checks, input validation, security guards, etc.) are part of the cost of correctness for the stated request, not inflation, even when the user did not enumerate them.
 
+Define behavior before naming architecture. For every proposed new durable
+state, authority, lifecycle, protocol, operator surface, or general-purpose
+abstraction, state in plain language what scoped outcome or touched invariant
+would fail if it were omitted. If no concrete omission scenario exists, narrow,
+reuse, inline, remove, or defer the mechanism. A subsystem name is shorthand
+for responsibilities already justified; it never imports responsibilities by
+convention.
+
 If the smallest fix to the stated request would itself be patchwork, the architecturally-correct alternative is by definition larger than the stated request. **This is a scope-architecture collision; the user is the tiebreaker, not you.** Surface the collision per the *Scope-architecture collisions* section of `policies/scope-discipline.md`: present the patchwork option, the design-consistent alternative, the size delta, and the design-cohesion cost of patchwork.
 
 If the answer is smaller than your instinct suggests, the instinct is a scope-inflation signal — trust the answer.

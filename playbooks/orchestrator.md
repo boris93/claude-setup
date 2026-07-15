@@ -46,7 +46,23 @@ When creating a plan in plan mode, before presenting it to the user for approval
    - Adjacent findings routed to deferred (do not absorb into the current plan).
    - Present unified synthesis following the output precedence in the synthesis policy.
 
-4. **Fix `blocking × in-scope` issues.** Adjacent findings are NOT addressed in this pass — they defer.
+4. **Resolve `blocking × in-scope` obligations.** Adjacent findings are NOT
+   addressed in this pass — they defer. Before editing the plan:
+   - Restate the scoped outcome or touched invariant that the finding proves is
+     missing. Treat the suggested resolution as advisory, not as scope
+     authority.
+   - If the finding exists only because of a plan-introduced mechanism, first
+     test whether narrowing, reusing, inlining, or removing that mechanism
+     preserves the obligation.
+   - Add or expand durable state, authority, lifecycle, protocol, operator
+     surface, or general-purpose abstraction only when a concrete omission
+     scenario proves it load-bearing. Prefer the resolution with the least new
+     semantic surface.
+   - If the load-bearing remedy crosses or alters declared scope, stop and raise
+     the applicable scope-change or scope-architecture-collision decision to
+     the user before editing. A larger in-scope site list, surface area, or work
+     breakdown is revised and re-reviewed in step 5; size alone is not a scope
+     change.
 
 5. **Re-review holistically.** Resubmit the *entire* plan (not just fixes) to all applicable reviewers in parallel. Before re-dispatch, re-run the gate from step 1 — if any fix reintroduced a shape violation, catch it here.
 
@@ -54,7 +70,11 @@ When creating a plan in plan mode, before presenting it to the user for approval
 
 7. **Reviewer fallback.** If any reviewer fails (timeout, error, empty output, or all-malformed findings), proceed with remaining reviewers' findings and note the failure. Do not block on a single reviewer.
 
-8. **Aggregate Phase 1 findings.** Maintain a cumulative findings list across iterations 1..N (not just the final iteration's findings). The union is Phase 2's input — a finding raised in iteration 1, addressed by added plan content, then absent in iteration 2 still justifies that content; the minimizer needs to see it.
+8. **Aggregate Phase 1 findings.** Maintain a cumulative findings list across
+   iterations 1..N (not just the final iteration's findings). The union is
+   Phase 2's input. Earlier findings preserve the behavioral obligations and
+   invariants they established, not necessarily the exact mechanisms added to
+   resolve them; the minimizer needs both the history and this distinction.
 
    **Filter to `blocking` and `significant` only** when passing to the minimizer. `acknowledged` findings document but don't require addressing per `policies/synthesis.md`; plan content added in response to them is planner-side scope inflation the minimizer is designed to catch. `strength` findings protect nothing.
 
@@ -71,7 +91,9 @@ Otherwise:
 1. **Launch `rfc-minimizer`** via Task tool. Pass three inputs:
    - The current plan (post Phase 1 convergence)
    - The original scope block (verbatim as preamble) — the minimizer's anchor
-   - The aggregate Phase 1 findings (from step 8 above, already filtered to `blocking` and `significant`) — the minimizer downgrades any blocking finding whose removal would reintroduce a gap flagged by one of these
+   - The aggregate Phase 1 findings (from step 8 above, already filtered to
+     `blocking` and `significant`) — these protect the behavioral obligation or
+     invariant they established, not the exact mechanism chosen to resolve it
 
 2. **Synthesize minimization findings** per `policies/synthesis.md`. All findings are subtractive by construction. Conflicting-recommendation findings (minimizer says remove, a Phase 1 finding justifies keep) surface to the user — do not auto-resolve.
 
@@ -83,7 +105,18 @@ Otherwise:
 
 Triggered only if Phase 2 yielded `blocking × in-scope` minimization findings.
 
-1. **Apply minimization removals** to the plan. Adjacent-scope minimization findings route to deferred per `policies/synthesis.md` — do not apply, but capture as deferred follow-ups.
+1. **Apply minimization without dropping obligations.** For each removal or
+   narrowing, restate any Phase 1 obligation or invariant currently carried by
+   that content. Apply the subtraction only together with a plan-altitude
+   disposition that preserves the obligation, using the root-cut in Phase 1
+   step 4 (narrow, reuse, inline, or remove the mechanism). If no smaller
+   disposition can be named without reopening the gap, do not apply the
+   subtraction; surface it as a conflicting recommendation for the user. If the
+   load-bearing disposition crosses or alters declared scope, use the applicable
+   scope-decision path before editing. A changed but still in-scope plan shape
+   proceeds to the verification review. Adjacent-scope minimization
+   findings route to deferred per `policies/synthesis.md` — do not apply, but
+   capture as deferred follow-ups.
 
 2. **Single verification re-review.** Re-launch `rfc-reviewer` and `rfc-red-team` (and `ux-reviewer` if applicable) in parallel on the minimized plan. Re-run the Phase 1 gate (step 1) before dispatch. **Max 1 verification pass; do not loop.**
 
@@ -147,6 +180,12 @@ the ledger as history, not as counter or trigger evidence for the new epoch.
 The flow is event-driven. Apply this table in every review phase and specialist
 lens; phase-specific prose supplies the reviewer and the recorded continuation,
 but does not override the ordering here.
+
+Every code-review fix also follows the obligation/remedy boundary in
+`policies/scope-discipline.md`: the finding establishes missing behavior or an
+invariant, while its suggested mechanism remains advisory. Prefer the least new
+semantic surface that closes the demonstrated gap, and raise material scope
+expansion to the user instead of absorbing it into a review fix.
 
 | Current state | Event | Required action | Allowed next state |
 |---|---|---|---|

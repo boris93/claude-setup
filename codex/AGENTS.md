@@ -66,6 +66,13 @@ Within the declared scope, prefer architecturally correct approaches over quick
 fixes when their cost is comparable. Outside that scope, defer adjacent
 improvements instead of treating cheap execution as permission to expand work.
 
+Architecture may discharge obligations; it does not create them. Scope binds
+required outcomes and existing invariants, not responsibilities implied by an
+architectural label, familiar pattern, or reviewer's suggested mechanism.
+Introduce new state, authority, lifecycle, protocol, operator surface, or
+generality only when omitting it would violate the scoped outcome or a touched
+invariant. Otherwise narrow, reuse, inline, remove, or defer it.
+
 Every plan and every code change entering review carries a scope block shaped by
 `contracts/scope-block.md`. Review findings use the severity and scope tags from
 `contracts/finding.md`; adjacent findings follow `policies/synthesis.md` and

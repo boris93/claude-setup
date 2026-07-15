@@ -10,6 +10,30 @@ Every reviewer MUST scope-tag every finding (`in-scope` / `adjacent` / `out-of-s
 
 Reviewers read the scope block (per `contracts/scope-block.md`) passed in as preamble; it is the anchor for tagging.
 
+## Obligations and remedies
+
+Architecture may discharge obligations; it does not create them. Scope binds
+the required outcome or existing invariant exposed by a finding, not the
+reviewer's suggested resolution or responsibilities conventionally associated
+with an architectural label or familiar pattern.
+
+A valid finding remains valid when its suggested mechanism is rejected. Before
+adding or expanding durable state, authority, lifecycle, protocol, operator
+surface, or general-purpose abstraction, identify the concrete omission
+scenario that would violate the scoped outcome or a touched invariant. If that
+trace is absent, narrow, reuse, inline, remove, or defer the mechanism instead.
+
+When a finding exists only because the reviewed artifact introduced an optional
+mechanism, challenge that mechanism before completing its implied
+responsibilities.
+
+Prefer the resolution with the least new semantic surface that preserves the
+obligation. A larger site list, surface area, or work breakdown is not by itself
+a scope change: if it remains inside the declared outcome, revise it and
+re-review holistically. Use the scope-change or scope-architecture-collision
+path below only when the load-bearing resolution crosses or alters declared
+scope; do not absorb that boundary change as an implementation detail.
+
 ## Scope change requests
 
 If a reviewer believes the scope itself is wrong — too narrow to address real risk, too broad to execute cleanly, or misaligned with the actual problem — it raises a **scope change request** as a single separate finding. This escalates to the user. The user decides whether to revise the scope block and re-review. Reviewers do not unilaterally expand scope; they request permission.

@@ -27,6 +27,12 @@ Each finding carries two orthogonal tags.
 - `scenario` — **REQUIRED** for `blocking` findings from adversarial lenses (e.g., `rfc-red-team`). Shape: trigger → propagation → impact. Without this, the finding is malformed.
 - `suggested resolution` — **REQUIRED** for `blocking` and `significant`; optional elsewhere.
 
+The suggested resolution is advisory. It proposes a way to satisfy the scoped
+obligation; it does not define scope, make a named mechanism mandatory, or
+import responsibilities conventionally associated with that mechanism. The
+orchestrator may choose a narrower resolution that preserves the same outcome
+or invariant per `policies/scope-discipline.md`.
+
 ## Validity
 
 A finding missing required fields is malformed. Synthesis discards malformed findings per `policies/synthesis.md`.
