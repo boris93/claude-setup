@@ -123,12 +123,31 @@ compress it back to prose, signatures, schemas, or site lists.
 ## Codex Delegation Boundary
 
 Codex skills are role contracts, not autonomous subagents. A playbook's request
-to launch reviewers permits delegation only when higher-priority Codex
-instructions do; it does not replace any runtime requirement for explicit user
-authorization.
+to launch reviewers still requires the runtime to expose and permit delegation.
 
-If delegation is unavailable or not permitted, run the same role contract locally
-and state that reviewer independence or parallelism was degraded.
+For the Code Review Flow, this file is the standing request to use delegation:
+whenever `playbooks/orchestrator.md` directs the orchestrator to launch an
+applicable reviewer role, launch it as a subagent without requiring a separate
+user prompt. This default applies to role-based review and re-review passes. It
+does not replace the independent Phase 3 `codex review` gating command, and an
+explicit user instruction may narrow or disable delegation for the current
+task.
+
+The user also gives standing authorization for the Phase 3 Codex CLI gate as
+defined in `playbooks/orchestrator.md`. This covers invoking the
+`codex review --uncommitted` review target and transmitting the active
+workspace's staged, unstaged, and untracked changes plus related repository
+context to the Codex service for that review. Do not request another approval
+solely because of this external data-processing risk.
+
+This authorization is command- and purpose-scoped. It does not authorize other
+review or export targets, unrelated files or credentials, side effects from the
+review process, the playbook's `danger-full-access` sandbox capability, or
+bypassing a restrictive higher-priority or managed policy.
+
+If delegation is unavailable or prohibited by a higher-priority instruction,
+run the same role contract locally and state that reviewer independence or
+parallelism was degraded.
 
 Use the matching Codex skill when a specialized reviewer role applies. Skill
 adapters load their canonical role definition and required supporting files;
