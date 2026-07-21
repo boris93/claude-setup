@@ -76,15 +76,15 @@ generated surfaces are stale.
 Clone and run the Codex installer from the repo root:
 
 ```bash
-git clone https://github.com/<you>/claude-setup.git ~/projects/claude-setup
-~/projects/claude-setup/install-codex.sh
+git clone git@github.com:boris93/cli-code-setup.git ~/projects/cli-code-setup
+~/projects/cli-code-setup/install-codex.sh
 ```
 
 For fresh machines or CI-style checks, validate without installing:
 
 ```bash
-~/projects/claude-setup/install-codex.sh --check
-~/projects/claude-setup/install-codex.sh --dry-run
+~/projects/cli-code-setup/install-codex.sh --check
+~/projects/cli-code-setup/install-codex.sh --dry-run
 ```
 
 The Codex installer first checks that generated surfaces are current, then
@@ -104,8 +104,8 @@ Claude Code remains a supported compatibility surface. Clone and run its
 installer from the repo root:
 
 ```bash
-git clone https://github.com/<you>/claude-setup.git ~/projects/claude-setup
-~/projects/claude-setup/install.sh
+git clone git@github.com:boris93/cli-code-setup.git ~/projects/cli-code-setup
+~/projects/cli-code-setup/install.sh
 ```
 
 The installer first checks that generated surfaces are current, then symlinks
