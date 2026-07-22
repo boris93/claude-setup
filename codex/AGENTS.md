@@ -125,13 +125,15 @@ compress it back to prose, signatures, schemas, or site lists.
 Codex skills are role contracts, not autonomous subagents. A playbook's request
 to launch reviewers still requires the runtime to expose and permit delegation.
 
-For the Code Review Flow, this file is the standing request to use delegation:
-whenever `playbooks/orchestrator.md` directs the orchestrator to launch an
-applicable reviewer role, launch it as a subagent without requiring a separate
-user prompt. This default applies to role-based review and re-review passes. It
-does not replace the independent Phase 3 `codex review` gating command, and an
-explicit user instruction may narrow or disable delegation for the current
-task.
+For the Plan Review Flow and Code Review Flow, this file is the standing request
+to use delegation: whenever `playbooks/orchestrator.md` directs the orchestrator
+to launch an applicable reviewer role, launch it as a subagent without requiring
+a separate user prompt. This default applies to every role-based review and
+re-review pass in both flows. In the Plan Review Flow, it explicitly includes
+`rfc-reviewer`, `rfc-red-team`, conditional `ux-reviewer`, `rfc-minimizer`, and
+the post-minimization verification re-review. It does not replace the
+independent Phase 3 `codex review` gating command, and an explicit user
+instruction may narrow or disable delegation for the current task.
 
 The user also gives standing authorization for the Phase 3 Codex CLI gate as
 defined in `playbooks/orchestrator.md`. This covers invoking the
