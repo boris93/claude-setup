@@ -20,6 +20,12 @@ When implementation reveals something the plan didn't anticipate:
 
 Do not silently expand scope because implementation surfaced an opportunity. Scope expansion goes through the scope change request process in `policies/scope-discipline.md`.
 
+Treat a review finding as an obligation to discharge, not as authority for its
+suggested mechanism. If a substantive fix would materially expand semantic
+surface or depends on an unresolved product or requirement assumption, pause
+before the expanded work and return to the resolution challenge in
+`playbooks/orchestrator.md`.
+
 ## Commit messages
 
 - Don't add authoring lines (no Co-Authored-By, no "Generated with" trailers) unless the user has explicitly asked for them.

@@ -59,6 +59,22 @@ The abstraction level at which a conversation, response, or artifact operates. C
 
 The directive for how altitude is applied in responses is in `CLAUDE.md` L1 under **Response altitude**. The *plan* altitude applied to plan artifacts is captured as a shape rule in `contracts/plan.md`.
 
+## Repair altitude
+
+The layer at which a valid finding's obligation is discharged:
+
+- **Implementation** — a local code correction within accepted behavior and
+  architecture.
+- **Architecture** — a change to decisions, interfaces, ownership, data flow,
+  or system shape.
+- **Product / requirement** — a change to which behavior is required or which
+  constraint users accept.
+
+A **resolution challenge** is the pre-fix double-loop check that accepts the
+finding's validity, separates its obligation from the suggested remedy, and
+selects the repair altitude before material semantic surface is added. It is
+not a second review of whether the finding is valid.
+
 ## Double-loop learning
 
 A framing for responding to feedback:

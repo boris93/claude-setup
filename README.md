@@ -18,7 +18,7 @@ contracts/                    # L2 — shapes of artifacts flowing between agent
   plan.md                     #   plan artifact shape (scope block + plan altitude + site list +
                               #     conditional temporal composition)
   code-change.md              #   code change artifact shape (scope block + diff + context)
-  review-ledger.md            #   cumulative review history for convergence diagnosis
+  review-ledger.md            #   cumulative review history for resolution and convergence
   rfc-implementation-closure.md # final RFC-to-code traceability closure
 policies/                     # L2 — shared behavioral rules across roles
   synthesis.md                #   routing matrix, output precedence, deferred capture
@@ -40,7 +40,7 @@ agents/                       # Generated Claude Code subagents (do not edit dir
   code-review-analyst.md      #   implementation-quality review
   ux-reviewer.md              #   user-facing flows through persona lenses
   security-researcher.md      #   attack surface decomposition
-  review-convergence-analyst.md # review-loop convergence diagnosis
+  review-convergence-analyst.md # pre-fix resolution challenge + convergence diagnosis
 sidekick-prompts/             # Reusable prompts (gating-review.md)
 scripts/generate-surfaces.py  # Generates agents/ and .agents/skills/ from roles/
 ```

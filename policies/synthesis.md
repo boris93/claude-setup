@@ -74,6 +74,10 @@ A latent design flaw surfaced during the Code Review Flow convergence checkpoint
 
 Discard findings missing required fields (e.g., adversarial `blocking` without scenario per `contracts/finding.md`). If all findings from a reviewer are malformed, treat as reviewer failure per the orchestrator's fallback policy.
 
+Once synthesis accepts a substantive finding, a resolution challenge may
+change the remedy or repair altitude but does not relitigate the finding.
+False-positive filtering and dismissal remain synthesis responsibilities.
+
 ## Convergent / complementary / conflicting findings
 
 - *Convergent* (multiple reviewers flag the same concern): high confidence, single entry, note convergence.

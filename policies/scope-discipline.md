@@ -34,6 +34,45 @@ re-review holistically. Use the scope-change or scope-architecture-collision
 path below only when the load-bearing resolution crosses or alters declared
 scope; do not absorb that boundary change as an implementation detail.
 
+## Repair-altitude resolution challenges
+
+Before applying a substantive review fix, state the candidate repair at plan
+altitude and identify the semantic-surface delta. Evaluate related candidates
+as a cluster when they share an invariant or surface, compose into one behavior,
+or rely on assumptions that may conflict. The reviewer's suggested resolution
+may inform the candidate, but it is not authoritative.
+
+Run a resolution challenge before fixing when the candidate or combined cluster:
+
+- introduces or materially expands durable state, authority, lifecycle,
+  protocol, operator surface, or general-purpose abstraction
+- materially changes accepted decisions, interfaces, ownership, or plan shape,
+  or crosses multiple ownership boundaries
+- has a bounded candidate shape but a materially uncertain delta whose unknown
+  dimensions are named
+- depends on a concrete disputed or missing product/requirement assumption,
+  would select user-visible behavior for which no accepted decision exists, or
+  names a candidate behavior change that removes the demonstrated failure class
+  with materially less semantic surface
+
+An imagined restrictive product behavior, an ordinary local branch already
+supported by an accepted product decision, or size alone does not trigger a
+challenge. A challenge accepts the synthesized finding obligation as valid and
+selects its repair altitude per `vocabulary.md`; finding validity remains the
+synthesis layer's responsibility.
+
+- A local correction proceeds through the recorded fix and review continuation.
+- A material architectural correction creates or updates a plan artifact and
+  completes Plan Review before code follows, even when the work began without
+  an accepted plan.
+- A product, requirement, or scope change pauses for the user and follows the
+  applicable artifact and review restart path.
+
+If implementation reveals that the accepted candidate must expand materially,
+pause before performing the expanded work and re-evaluate. Ordinary incomplete
+implementation of an otherwise sufficient candidate does not invalidate the
+repair-altitude decision.
+
 ## Scope change requests
 
 If a reviewer believes the scope itself is wrong — too narrow to address real risk, too broad to execute cleanly, or misaligned with the actual problem — it raises a **scope change request** as a single separate finding. This escalates to the user. The user decides whether to revise the scope block and re-review. Reviewers do not unilaterally expand scope; they request permission.

@@ -73,6 +73,15 @@ Introduce new state, authority, lifecycle, protocol, operator surface, or
 generality only when omitting it would violate the scoped outcome or a touched
 invariant. Otherwise narrow, reuse, inline, remove, or defer it.
 
+When a valid review finding's candidate remedy would materially expand that
+semantic surface, depend on a disputed or missing product/requirement
+assumption, select user-visible behavior without an accepted decision, or when
+a concrete product or requirement change could eliminate the demonstrated
+failure class with materially less surface, run a resolution challenge before
+implementing the remedy. Preserve the finding's obligation, select the repair
+altitude defined in `vocabulary.md`, and leave product, requirement, and scope
+changes to the user.
+
 Every plan and every code change entering review carries a scope block shaped by
 `contracts/scope-block.md`. Review findings use the severity and scope tags from
 `contracts/finding.md`; adjacent findings follow `policies/synthesis.md` and

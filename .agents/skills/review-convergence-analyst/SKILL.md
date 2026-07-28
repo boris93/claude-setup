@@ -1,11 +1,11 @@
 ---
 name: review-convergence-analyst
-description: "Review-loop convergence diagnosis. Use when repeated code review or gating findings suggest unresolved architecture, requirement, invariant, ownership, or abstraction problems rather than independent bugs."
+description: "Pre-fix resolution challenge and review-loop convergence diagnosis. Use when a valid finding's candidate remedy may add disproportionate semantic surface, or repeated findings suggest an unresolved architecture, product, requirement, invariant, ownership, or abstraction problem."
 ---
 
 <!-- Generated from roles/review-convergence-analyst.md by scripts/generate-surfaces.py. Do not edit directly. -->
 
-# Review Convergence Analyst
+# Review Resolution and Convergence Analyst
 
 ## Source
 
@@ -26,9 +26,8 @@ If the relative paths are unavailable, try the same files under the configured C
 
 ## Procedure
 
-1. Read the scope block, current diff, and review ledger summary.
-2. Cluster findings by repeated symptom, sibling surface, violated invariant, requirement ambiguity, and fix direction.
-3. Decide whether there is no common root cause, a local design flaw, a requirement ambiguity, a scope collision, or reviewer noise.
-4. Recommend the convergence action: resume the recorded continuation, restart from Phase 1 after an architectural fix, ask the user a requirement question, or create a blocking follow-up.
-5. Return the checkpoint diagnosis, action, status, and resolution requirements for the review ledger.
-6. Tag every finding by severity and scope; do not propose broad redesigns unless the ledger shows they are necessary for convergence.
+1. Read the requested mode, scope block, current diff, and applicable finding or ledger summary.
+2. Accept findings already accepted by synthesis as valid; do not dismiss or close them.
+3. In resolution-challenge mode, compare implementation, architecture, and product/requirement repair altitudes.
+4. In convergence-diagnosis mode, cluster repeated symptoms and identify the unresolved design, requirement, invariant, ownership, scope, or reviewer-quality issue.
+5. Return one diagnosis, rationale, and next action; include any new findings using the shared finding contract.

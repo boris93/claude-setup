@@ -53,6 +53,22 @@ non-fix changes it to `accepted`; routing or rejection changes it to `deferred`
 or `dismissed`. Relationship labels do not close a finding and may be added at
 any lifecycle state.
 
+## Resolution Decision Note
+
+When the pre-fix resolution challenge in `playbooks/orchestrator.md` runs,
+record one compact note on the affected ledger entries:
+
+- triggering finding or finding cluster
+- candidate repair and material semantic-surface delta
+- selected repair altitude when applicable: `implementation`, `architecture`,
+  or `product-requirement`; otherwise the no-selection diagnosis, such as
+  `scope-collision`
+- rationale and next action
+
+This note records a decision; it is not a new lifecycle, checkpoint hierarchy,
+or authorization protocol. The finding lifecycle and any existing convergence
+checkpoint remain authoritative.
+
 ## Review Epochs
 
 The ledger is cumulative, but the substantive-iteration counter is scoped to a
