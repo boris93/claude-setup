@@ -35,13 +35,33 @@ before the expanded work and return to the resolution challenge in
 
 ## Commit gating
 
-**Never commit without completing the full Code Review Flow first.** The Code Review Flow is defined in `~/.claude/playbooks/orchestrator.md` — running it means switching to the orchestrator role (load that playbook, execute the flow, then return here to create the commit).
+Classify the complete proposed commit before choosing its gate:
 
-The flow is incomplete while any convergence checkpoint in the review ledger
-is `open` or `actioned`. A clean reviewer rerun does not implicitly close the
-checkpoint; its diagnosis and status evidence must be recorded.
+1. **RFC/plan-only commit** — every changed path is a repository-backed plan or
+   RFC artifact conforming to `contracts/plan.md`. There are no deletions and
+   no code, configuration, generated surface, instruction, implementation
+   documentation, or other artifact changes.
+2. **Implementation or mixed commit** — every other diff, including a plan/RFC
+   committed together with any non-plan artifact.
 
-This is non-negotiable. Exceptions:
+For an **RFC/plan-only commit**:
 
-- If scope or time pressure tempts you to skip review, that is a signal to **narrow the commit scope** (smaller diff, fewer concerns), not to skip review.
+- Do not run any Code Review Flow phase: no `code-review-analyst`, simplification
+  pass, specialist review, `codex review` gate, root-cause synthesis, or RFC
+  implementation closure.
+- Run ordinary non-review commit checks appropriate to the repository, such as
+  inspecting the exact proposed diff and running `git diff --check`, then
+  commit. A Plan Review receipt is not a commit gate.
+
+For an **implementation or mixed commit**, complete the full Code Review Flow
+defined in `~/.claude/playbooks/orchestrator.md`, then return here to create the
+commit. The flow is incomplete while any convergence checkpoint in the review
+ledger is `open` or `actioned`. A clean reviewer rerun does not implicitly close
+the checkpoint; its diagnosis and status evidence must be recorded.
+
+These routes are mandatory:
+
+- If scope or time pressure tempts you to skip the applicable gate, that is a
+  signal to **narrow the commit scope** (smaller diff, fewer concerns), not to
+  bypass the gate.
 - If a pre-commit hook fails, fix the underlying issue and create a **new** commit. Never `--amend` or `--no-verify` unless the user has explicitly requested it.

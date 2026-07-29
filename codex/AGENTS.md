@@ -52,7 +52,8 @@ Do not hand-edit generated `agents/*.md` or `.agents/skills/*`; edit
 Shared files live under `${CODEX_HOME:-~/.codex}`:
 
 - Contracts under `contracts/`: `finding.md`, `scope-block.md`, `plan.md`,
-  `code-change.md`, `review-ledger.md`, and `rfc-implementation-closure.md`.
+  `plan-review-receipt.md`, `code-change.md`, `review-ledger.md`, and
+  `rfc-implementation-closure.md`.
 - Policies under `policies/`: `synthesis.md`, `scope-discipline.md`, and
   `contract-enforcement.md`.
 - Vocabulary: `vocabulary.md`.

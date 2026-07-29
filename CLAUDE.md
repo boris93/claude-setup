@@ -15,6 +15,7 @@ The contract vs policy vs vocabulary distinction is defined in `vocabulary.md`. 
 @contracts/finding.md
 @contracts/scope-block.md
 @contracts/plan.md
+@contracts/plan-review-receipt.md
 @contracts/code-change.md
 @contracts/review-ledger.md
 @contracts/rfc-implementation-closure.md

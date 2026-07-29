@@ -15,6 +15,10 @@ Reviewers are content specialists. They focus on judgment ("is the idea sound?")
   dispatching to RFC reviewers. When a temporal-composition trigger applies,
   the conditional section is part of the required artifact. See
   `playbooks/orchestrator.md`.
+- **Plan Review closure marker** — for a repository-backed plan or RFC, the
+  orchestrator issues the ignored sidecar defined by
+  `contracts/plan-review-receipt.md` only after terminal GREEN closure. A
+  current receipt suppresses duplicate Plan Review; it does not gate commits.
 - **Code Review Flow gate** — the orchestrator validates code change artifacts (per `contracts/code-change.md`) before dispatching to code reviewers. Synthesizes the scope block from context if the change was a direct dirty-tree edit.
 - **RFC implementation closure gate** — the orchestrator validates closure artifacts (per `contracts/rfc-implementation-closure.md`) before dispatching to the RFC implementation verifier.
 
@@ -25,8 +29,11 @@ If a contract fails at the gate, the orchestrator either:
 ## Role responsibilities
 
 - **Planner** self-checks against the plan contract before hand-off (author-side compliance). The planner is trusted but the orchestrator verifies. See `playbooks/planner.md`.
-- **Implementer** produces code changes that compose with the code-change contract. See `playbooks/implementer.md`.
-- **Orchestrator** is the sole enforcement gate. See `playbooks/orchestrator.md`.
+- **Implementer** classifies the proposed commit by artifact kind and requires
+  either the RFC/plan-only route or the Code Review Flow. See
+  `playbooks/implementer.md`.
+- **Orchestrator** is the sole enforcement gate and the sole issuer of Plan
+  Review closure receipts. See `playbooks/orchestrator.md`.
 - **Reviewers** (rfc-reviewer, rfc-red-team, rfc-implementation-verifier, code-review-analyst, ux-reviewer, security-researcher) are content specialists. They consume artifacts, assume the gate has validated shape, and focus on content review. Their output complies with `contracts/finding.md`.
 
 ## Reviewer defensive behavior (defense in depth, not primary enforcement)

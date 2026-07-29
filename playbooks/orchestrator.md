@@ -22,6 +22,13 @@ was degraded.
 
 When creating a plan in plan mode, before presenting it to the user for approval. Phased structure mirrors Code Review Flow.
 
+For a repository-backed plan or RFC, first check the repo-local sidecar defined
+by `contracts/plan-review-receipt.md`. If it is current for the artifact and
+repository HEAD, Plan Review is already closed: do not dispatch reviewers again
+unless the user explicitly requested a fresh review. Before dispatching that
+fresh review, remove the existing receipt. A missing or stale receipt enters
+Phase 1 normally.
+
 ### Phase 1: Parallel review loop
 
 1. **Gate: enforce the plan contract** per `contracts/plan.md`. Fix the plan yourself rather than forwarding a non-conformant artifact to reviewers:
@@ -127,6 +134,14 @@ Triggered only if Phase 2 yielded `blocking × in-scope` minimization findings.
 
 ### Phase 4: Present to user
 
+For a repository-backed plan or RFC, write or replace its closure receipt per
+`contracts/plan-review-receipt.md` only when the final state is GREEN: all
+applicable phase exit conditions are satisfied, no `blocking × in-scope`
+finding remains, and no user decision or minimization conflict is pending.
+Compute the artifact hash from the saved final artifact and record the current
+repository HEAD. Do not issue a receipt for an unresolved, iteration-capped, or
+conversational-only plan.
+
 Present via ExitPlanMode. Include:
 
 - Unified synthesis per `policies/synthesis.md` output precedence
@@ -141,6 +156,11 @@ Present via ExitPlanMode. Include:
 ## Code Review Flow
 
 After implementing changes, follow this multi-reviewer convergence process. Each phase loops until feedback reaches marginal utility.
+
+This flow does not apply to a commit whose complete diff consists only of
+repository-backed plan/RFC artifacts. That commit uses the RFC/plan-only route
+in `playbooks/implementer.md`; do not launch any Code Review phase for it.
+Mixed commits and all other artifact kinds enter this flow normally.
 
 **Timeout policy:** All review sub-tasks must run without timeouts. Bash-based reviewers (Codex, Claude CLI fallback) use `run_in_background: true`. Task-based reviewers (`code-review-analyst`) must not set `max_turns`. Always wait for completion notifications before reading output — never assume a background task has failed while still running.
 

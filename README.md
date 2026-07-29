@@ -17,6 +17,7 @@ contracts/                    # L2 — shapes of artifacts flowing between agent
   scope-block.md              #   Problem / In scope / Out of scope shape
   plan.md                     #   plan artifact shape (scope block + plan altitude + site list +
                               #     conditional temporal composition)
+  plan-review-receipt.md      #   ignored repo-local GREEN closure marker for a reviewed plan/RFC
   code-change.md              #   code change artifact shape (scope block + diff + context)
   review-ledger.md            #   cumulative review history for resolution and convergence
   rfc-implementation-closure.md # final RFC-to-code traceability closure
