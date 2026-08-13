@@ -48,6 +48,31 @@ The user is voice-typing. Raw speech may be exploratory, repetitive, unordered,
 or partially formed. Converting that input into a coherent understanding is
 Codex's responsibility, not the user's.
 
+## Post-PoC decision classification
+
+Section 91 abandons the authoritative-host implementation without erasing the
+decisions that preceded it. Read this record using four classifications:
+
+- **Settled operating decision:** a user-reviewed product or operating choice
+  that remains current. SQLite as the relational project brain with the logical
+  primary as sole writer is in this class, although a first PoC need not exercise
+  every project-brain feature.
+- **Bounded principle:** a current constraint whose implementation remains open.
+  Examples include using software for genuinely deterministic gates and checking
+  facts at their earliest responsible phase. This does not select a complete
+  controller or state-machine architecture.
+- **Historical attempt:** a Plan, proof, mechanism, or decision candidate kept
+  to preserve reasoning and evidence. It is not inherited by new work.
+- **Reopened mechanism:** the required behavior remains, but the implementation
+  boundary must be selected again. App Server hosting, notification protocols,
+  rebind machinery, runtime transaction ownership, and implementation language
+  are in this class.
+
+When an older paragraph conflicts with a later explicit status, the later status
+controls. In particular, Sections 48, 85, and 90 are historical; Section 88
+retains only its bounded principle; and Section 91 controls inheritance into a
+fresh PoC.
+
 ## Settled Decisions
 
 ### 1. One accountable user interface
@@ -127,6 +152,23 @@ An ITD is a technical decision that:
 
 Small implementation details are not ITDs.
 
+The reference transcript's three-letter test is preserved here so it does not
+need to be rediscovered:
+
+- **Important** begins with product context: what comes in, what comes out, and
+  what makes the result good (for example accuracy, latency, availability,
+  scale, customization, or autonomy).
+- **Technical** means one of the few fundamental, hard-to-change choices that
+  constrains many downstream decisions, not the many detailed choices that a
+  delivery team can derive later.
+- **Decision** preserves the reasoning: the alternatives considered, questions
+  asked, and rationale linking the selected direction back to what matters in
+  the product. The selected answer alone is insufficient.
+
+That rationale is especially valuable when a later change reopens the choice:
+future maintainers must be able to distinguish a reason that remains valid from
+one that was valid only under earlier product or technology conditions.
+
 Before interrupting the user with an ITD interview question, the primary must
 apply an ITD qualification gate:
 
@@ -169,11 +211,13 @@ uses one chronological, append-oriented ITD log file rather than one file per
 decision. An accepted entry is never erased. If a later decision changes it, the
 original remains and is marked as superseded by the newer ITD.
 
-The transcript that informed this definition is currently:
+The source transcript that informed this definition was located at capture time
+at:
 
 `/home/abhishek-borar/Downloads/CTO Bootcamp - What is an ITD_.transcript.txt`
 
-Whether and where to archive that transcript inside the project remains open.
+The repository preserves its decision-relevant substance above rather than
+vendoring the verbatim third-party transcript.
 
 ### 7. One logical primary, not one immortal transcript
 
@@ -210,10 +254,9 @@ It should eventually hold and make queryable:
 - other project-management state still to be defined.
 
 It must remain durably associated with the project. An earlier decision placed
-and versioned it directly in the target source repository; the later
-control-plane architecture discussion reopened that physical placement and
-version-control boundary. Its storage and interaction interface remain separate
-concerns.
+and versioned it directly in the target source repository; later storage and
+hosting discussion reopened that physical placement and version-control
+boundary. Its storage and interaction interface remain separate concerns.
 
 The project brain should ideally replace the user's current Google Keep workflow
 for project ideas.
@@ -479,17 +522,17 @@ than every routine executor update. The execution stream and product events
 remain linked, providing complete recovery history without turning the product
 view into operational chatter.
 
-### 28. SQLite is the preferred storage candidate
+### 28. The project brain is relational
 
 The emerging project-brain model is relational: work items, events,
 checkpoints, ideas, source occurrences, tags, ITDs, agents, Git evidence, and
 their links must be independently queryable.
 
-SQLite is therefore the preferred storage candidate, using multiple related
-tables and views. The following decision selects its canonical role and writer
-boundary.
+SQLite was selected as the simple relational implementation, using multiple
+related tables and views. The following decision records its canonical role and
+writer boundary.
 
-### 29. SQLite is canonical and single-writer; placement is open
+### 29. SQLite project-brain storage is canonical and primary-single-writer; runtime use is open
 
 The project brain's SQLite database is its canonical source of truth and is
 mutated only by the primary Codex.
@@ -503,9 +546,15 @@ The writer boundary belongs to the logical primary role rather than one
 immortal process. If the physical primary session is replaced, writer ownership
 transfers; multiple primary writers must never be active concurrently.
 
+This is an accepted project-memory ownership decision, not a decision to make
+SQLite the transaction engine for every runtime protocol. A fresh PoC may use
+only the smallest project-brain slice needed for its claim. It must not inherit
+the abandoned 60-table runtime kernel or duplicate process-local lifecycle state
+merely because the eventual project brain uses SQLite.
+
 An earlier decision placed and committed the database in the primary worktree.
 That placement is now explicitly reopened. The database may ultimately live in
-the target repository, in external per-project control-plane state, or behind a
+the target repository, in external per-project durable state, or behind a
 hybrid versioning/export boundary.
 
 ### 30. Primary and execution agents maintain a general conversation
@@ -745,18 +794,96 @@ exact trigger cadence for this assessment remains to be selected.
 ### 47. The operating model is becoming a software-controlled workflow
 
 The emerging model is not only a collection of natural-language instructions.
-It is a deterministic orchestration process in which software can enforce
-repeatable state transitions, persistence, version creation, diff generation,
-review loops, and mandatory triggers.
+Software may enforce the small set of repeatable state transitions, persistence,
+version creation, diff generation, review loops, and mandatory triggers that a
+bounded product claim genuinely requires.
 
 Agents provide bounded semantic analysis and execution inside those controlled
-steps. The primary remains the user-facing orchestrator. The exact boundary
-between program-enforced behavior and agent judgment remains to be selected.
+steps. The primary remains the user-facing orchestrator. This is an operating
+principle, not a decision that a standalone controller must own a complete
+workflow. Section 91 reopens the exact boundary between stock Codex,
+program-enforced behavior, agent judgment, and durable project storage.
 
-### 48. Pending ITD: authoritative orchestration host
+### 47A. ITD: prevent workflow omissions at runtime, then audit final consistency
 
-**Status:** Pending mandatory user review after the proof-of-capability gate.
-Option 3 is the preferred hypothesis, not an accepted decision.
+**Status:** Superseded by Section 88. Preserved as decision history.
+
+#### Problem Statement
+
+A single complete verifier at the end can discover that an early required step
+was missing or invalid only after later agent work, reviews, and effects have
+already occurred. The operating model needs to prevent dependent work when its
+prerequisites are not proven without maintaining a second complete semantic
+implementation solely for end-of-run replay.
+
+#### Option 1: Use only one complete end verifier
+
+Pros:
+
+- keeps the runtime control path smaller.
+
+Cons:
+
+- detects early omissions after dependent work has been spent; and
+- may report an invalid effect only after it occurred.
+
+#### Option 2: Enforce the proof contract during execution and retain a thin independent terminal audit
+
+Pros:
+
+- blocks each dependent transition until its authoritative prerequisites are
+  durable and valid;
+- fails at the first relevant boundary instead of after the complete run; and
+- retains independent detection of final evidence, report, provenance, or exact
+  external-result drift without replaying every semantic decision.
+
+Cons:
+
+- requires an explicit proof-obligation graph across the workflow; and
+- requires a strict ownership boundary so terminal auditing does not duplicate
+  runtime semantic enforcement.
+
+#### Option 3: Runtime enforcement plus a second complete semantic replay
+
+Pros:
+
+- provides the strongest duplicate checking.
+
+Cons:
+
+- implements the same semantic contract twice; and
+- increases drift, maintenance, and false-disagreement risk.
+
+#### Decision
+
+Choose Option 2.
+
+The programmatic controller enforces each prerequisite from authoritative
+durable evidence before the dependent assignment, authority action, or external
+effect. Agents may produce evidence and judgment but cannot self-certify gate
+satisfaction. Missing, stale, mismatched, or out-of-order evidence stops the
+affected workflow visibly; it never triggers automatic repair, retry, restart,
+or integration.
+
+Terminal success is itself a runtime-enforced transition over the complete
+accepted obligation set. A separate read-only terminal audit remains narrow: it
+checks the exact durable projection, source/executable provenance, report
+consistency, producer result, and any final external effect that can be confirmed
+only after it occurs. Every fallible child shutdown, evidence/report staging,
+runtime cleanup, and input-freeze operation completes before the audit starts.
+The auditor is then the final executable: it alone emits PASS and its direct exit
+is the runner result, with no later mutation or cleanup. It does not independently
+reinterpret every plan, review, agent, or user decision. This preserves
+prevention as the primary correctness mechanism and uses terminal auditing for
+independent final consistency rather than first discovery of missed workflow
+steps.
+
+### 48. Archived ITD candidate: authoritative orchestration host
+
+**Status:** Closed without selection by Section 91. Preserved as research and
+decision history only. Option 3 was the preferred hypothesis, never an accepted
+decision; it is no longer the preferred or default starting point. The required
+proof below was abandoned with the implementation.
 
 #### Problem Statement
 
@@ -770,9 +897,10 @@ agent lifecycle, checkpoint timing, worktrees, approvals, and the user
 interface. Reversing it after workflow logic spreads across the system would be
 expensive.
 
-#### Decision drivers
+#### Historical decision drivers
 
-The selected host must preserve the already accepted invariants:
+The abandoned candidate was evaluated against this then-current mixture of
+operating decisions and proof-specific assumptions:
 
 - primary Codex is the user's only interface and semantic team lead;
 - a deterministic state machine owns mandatory transitions and gates;
@@ -866,9 +994,10 @@ Cons:
   and exact native-CLI parity are not sufficiently documented to assume; and
 - Codex protocol compatibility must be pinned and tested across upgrades.
 
-#### Recommendation
+#### Historical recommendation
 
-Choose Option 3 only after a narrow proof-of-capability succeeds.
+The historical recommendation was to choose Option 3 only after a narrow
+proof-of-capability succeeded. Section 91 closes that path without selection.
 
 The durable architectural decision would be:
 
@@ -881,7 +1010,7 @@ Skills remain role guidance, MCP remains a controlled agent-to-controller
 interface, hooks remain lifecycle observation and fail-closed guards, and
 plugins may package those surfaces. None owns the state machine.
 
-#### Required proof-of-capability
+#### Abandoned proof-of-capability
 
 Before accepting the ITD, one vertical slice must prove:
 
@@ -924,7 +1053,7 @@ Forking is an escape hatch, not the default implementation substrate.
 
 ### 50. Root-architecture assessment has deterministic triggers
 
-The workflow program generates both the adjacent-version diff and the exact
+The review tooling generates both the adjacent-version diff and the exact
 version-zero-to-current diff after every RFC or plan revision.
 
 It launches an independent root-architecture assessment:
@@ -957,7 +1086,7 @@ architecture judgment to a reviewer's earlier reasoning.
 
 ### 52. Agent configuration can be routed by work type
 
-A subagent-native architecture allows the control plane to select the model and
+A subagent-native architecture allows the orchestrator to select the model and
 reasoning effort independently for each assigned work item or role.
 
 Routine or well-bounded work can use a cheaper, faster configuration, while
@@ -967,10 +1096,10 @@ benefit rather than requiring every step to run at the primary's configuration.
 
 ### 53. Routing is policy-based and starts quality-first
 
-The control plane selects model and reasoning effort through a recorded policy
-based on work type, risk, and required judgment. The primary may override the
-default with a recorded reason, and an execution agent may request stronger
-configuration with evidence.
+Model and reasoning effort are selected through a recorded policy based on work
+type, risk, and required judgment. The primary may override the default with a
+recorded reason, and an execution agent may request stronger configuration with
+evidence.
 
 The initial policy assigns all agents the max/default configuration. Cheaper or
 faster routes are introduced only later, using observed work outcomes rather
@@ -978,6 +1107,10 @@ than speculative quality assumptions. The routing machinery therefore exists
 from the start while optimization remains incremental and reversible.
 
 ### 54. Measurement and future backtesting are cross-cutting requirements
+
+Sections 54-60 describe accepted future measurement and corpus behavior. They
+do not require the first fresh PoC to build an evaluation engine or recreate the
+abandoned control plane.
 
 The operating model must make its real performance measurable rather than
 judging changes by intuition. This applies to cost optimization and to the
@@ -1027,7 +1160,7 @@ constraints, preserved local artifacts, and controlled tool access. It should
 not depend on mutable external services merely because the original execution
 did.
 
-The deterministic control-plane harness is evaluated separately through normal
+Any deterministic orchestration code is evaluated separately through normal
 software unit and integration tests, using fake or replayed agent responses
 where appropriate.
 
@@ -1037,10 +1170,9 @@ default agent backtest corpus.
 
 ### 57. Evaluation has three distinct layers
 
-1. **Control-plane tests** exercise the deterministic state machine, SQLite
-   transitions, timers, routing, worktree operations, recovery, and protocol
-   adapters with normal software unit and integration tests. Fake or recorded
-   agent responses isolate harness behavior.
+1. **Orchestration-code tests** exercise whichever deterministic storage,
+   routing, timing, worktree, recovery, or protocol behavior the chosen design
+   actually contains. Fake or recorded agent responses isolate program behavior.
 2. **Stateless agent backtests** compare model, reasoning, prompt, skill, or
    role changes against immutable repository and task fixtures.
 3. **Curated stateful tests** cover selected cross-agent, desktop, network,
@@ -1076,11 +1208,10 @@ already-canonical identifiers rather than copied.
 
 Large or binary special fixtures live in a content-addressed artifact store.
 SQLite preserves their hash, metadata, provenance, and relationships to cases.
-The control plane must enforce consistency between relational records and the
+The storage owner must enforce consistency between relational records and the
 artifact store.
 
-The physical and version-control placement of both stores remains part of the
-broader open control-plane placement decision.
+The physical and version-control placement of both stores remains open.
 
 ### 60. Every backtest preserves its test-run recipe
 
@@ -1215,6 +1346,11 @@ The implementer returns either:
   plan-quality loop resumes.
 
 This makes handoff quality measurable before implementation cost accumulates.
+
+Sections 69-84 preserve user-settled end-state behaviors and the scope choices
+made for the abandoned MVP. They do not collectively define the acceptance bar
+or mechanisms of the next PoC; Section 91 requires that bounded proof to be
+selected again from first principles.
 
 ### 69. ITD: execution uses immutable, restartable attempts
 
@@ -1456,8 +1592,8 @@ Choose the refreshed Option 1: every attempt begins with an immutable base
 snapshot, and an approved restart returns to that exact snapshot.
 
 Git remains the durable project history after work is accepted, but it is not
-the workflow's only snapshot mechanism. The control plane must provide
-additional runtime snapshotting sufficient to enable rewind, restart, and
+the operating model's only snapshot mechanism. The durable project-state design
+must provide additional snapshotting sufficient to enable rewind, restart, and
 attempt comparison before a Git commit exists. The snapshot's exact contents,
 storage mechanism, lifecycle, and treatment of accepted independent changes
 remain to be designed.
@@ -1527,11 +1663,11 @@ base snapshot.
 
 #### Problem Statement
 
-The project has two fundamentally different planes. The control plane is the
-permanent chronological record of every project instant and orchestration
+The project has two fundamentally different planes. The project-history plane
+is the permanent chronological record of every project instant and orchestration
 transition. The execution plane contains the implementation state being
 changed. Treating both as restorable state would erase or rewrite the very
-history the control plane exists to preserve.
+history the project-history plane exists to preserve.
 
 #### Option 1: Rewind both control and execution planes
 
@@ -1543,7 +1679,7 @@ Cons:
 
 - erases or rewrites project chronology;
 - destroys evidence about the abandoned path; and
-- contradicts the control plane's append-only purpose.
+- contradicts the project-history plane's append-only purpose.
 
 #### Option 2: Rewind execution and the complete development environment
 
@@ -1577,16 +1713,16 @@ Cons:
 
 Choose Option 3.
 
-The control plane never rolls back. Snapshot creation, phase transitions,
+The project-history plane never rolls back. Snapshot creation, phase transitions,
 attempt abandonment, user restart approval, execution rewind, and replacement
 attempt creation are all recorded as new forward, append-only events. Current
-control-plane projections may advance in response to those events, but no
+project-history projections may advance in response to those events, but no
 historical record is rewritten or removed.
 
 Only execution-plane state is restorable. This primarily means the code
 worktree and repository-local implementation artifacts owned by the attempt.
-Snapshot manifests and execution-state references may be stored by the control
-plane, but they are evidence and pointers, not control-plane state to restore.
+Snapshot manifests and execution-state references may be stored by the project
+ledger, but they are evidence and pointers, not historical state to restore.
 Agent sessions are not rewound; replacement agents receive fresh context
 derived from the preserved record.
 
@@ -1716,7 +1852,7 @@ their retention requirements are satisfied. Content-addressed storage should
 allow identical content to be shared rather than copied repeatedly.
 
 Garbage collection affects only eligible execution-snapshot content. The
-control plane never deletes or rewrites the historical snapshot manifest,
+project-history ledger never deletes or rewrites the historical snapshot manifest,
 retention decision, or garbage-collection event. Consequently, the record may
 show that a historical snapshot once existed even when its non-durable content
 has expired.
@@ -1956,7 +2092,7 @@ integration.
 
 The same slice must also exercise a controlled failure or interruption path
 that proves compaction or physical-agent replacement recovery and an authorized
-execution rewind without losing control-plane history. Component tests and
+execution rewind without losing project-history evidence. Component tests and
 installation checks remain necessary evidence, but they cannot substitute for
 this vertical acceptance slice. Selecting the exact pilot repository and task
 belongs to later implementation planning.
@@ -2199,19 +2335,461 @@ execution may continue when the user's UI or original physical primary session
 is disconnected. An unresolved user ask, mandatory approval, rewind request, or
 failure gate pauses the affected work until the user returns.
 
-This decision establishes a required behavior, not the controller
-implementation. A persistent programmatic control plane is the current working
-mechanism: it would own mechanical work state, agent-thread lifecycle,
-checkpoint and ask routing, pause enforcement, and recovery, while the logical
-primary Codex retains semantic leadership and remains the user's interface. The
-authoritative host and native-CLI connection remain subject to the pending
-proof-of-capability ITD in Section 48.
+This decision establishes a required user-visible behavior, not its
+implementation mechanism. Section 91 abandons the former programmatic-control-
+plane/native-CLI mechanism and its proof. A fresh PoC must choose from first
+principles how accepted work continues across UI/session detachment—for example
+through a native persistent Codex lifecycle or a smaller external host—without
+assuming the discarded controller architecture.
+
+### 85. ITD: MVP worker isolation starts with native permission profiles
+
+**Status:** Superseded by Section 91. Preserved as proof-specific decision
+history; it is not inherited by a fresh PoC.
+
+#### Problem Statement
+
+The authoritative-host proof requires controller-created workers to have no
+route to the controller's SQLite control plane. Workers execute beneath the same
+Codex App Server and Unix identity as the controller process, so a randomized or
+undisclosed database path is not an enforceable boundary. The MVP must choose
+the smallest mechanism that can prove the required isolation without turning
+the proof into a container-runtime project.
+
+#### Option 1: Codex permission profiles with an adversarial read gate
+
+Configure dedicated worker permission profiles that deny the filesystem root,
+which also denies temporary directories, grant only the minimal runtime paths,
+and expose only the assigned worker worktree. A dedicated qualification harness gives a
+representative worker the exact SQLite path and requires independent raw
+execution evidence that its read attempt was denied. Normal runtime workers do
+not repeat the probe or receive the database path.
+
+Pros:
+
+- uses the native Codex permission mechanism;
+- is portable across platforms that support permission profiles;
+- keeps the Phase 4 proof focused on controller-owned worker orchestration; and
+- makes isolation falsifiable through an exact-path denial probe rather than
+  relying on prompt compliance or path secrecy.
+
+Cons:
+
+- permission profiles are a beta Codex surface; and
+- correctness depends on the profile applying to every tool surface available
+  to the worker.
+
+#### Option 2: Outer Bubblewrap namespace plus permission profiles
+
+Launch the App Server inside a Linux mount namespace in which the controller
+database is absent, then apply the same per-worker permission profiles.
+
+Pros:
+
+- establishes a process-level boundary inherited by every App Server worker
+  descendant; and
+- provides defense in depth against a permission-profile regression.
+
+Cons:
+
+- introduces a Linux-specific runtime dependency;
+- adds nested-sandbox and mount-layout complexity;
+- isolates the trusted App Server as well as workers; and
+- risks shifting the MVP proof from worker orchestration to container
+  mechanics before evidence shows that boundary is necessary.
+
+#### Decision
+
+Choose Option 1 for the MVP.
+
+The controller disables MCP, dynamic tools, and native agent spawning for the
+worker threads, assigns each worker only its dedicated worktree through a
+least-privilege Codex permission profile, and requires the pinned profile to pass
+a dedicated exact SQLite read-denial qualification before accepting the Phase 4
+isolation claim. A runtime proof must consume one exact passing qualification
+packet, independently validate its raw command/result correlation, permission-
+config equivalence, Codex version, and harness/native-executable provenance, and
+record the packet digest. The probe is test-time qualification, not a mandatory
+first action in each worker assignment. Same-identity path secrecy is explicitly
+not a security mechanism.
+
+Bubblewrap is not part of the accepted architecture. It remains a contingent
+fallback only if live evidence demonstrates that the native permission profile
+does not cover a tool surface required by the worker or cannot enforce the
+SQLite denial. Such evidence reopens this ITD rather than silently adding the
+container boundary.
+
+### 86. ITD: validate the complete low-stakes happy path before hardening
+
+**Status:** Accepted by the user.
+
+#### Problem Statement
+
+The authoritative-host proof established the stock CLI, gateway, durable command
+kernel, and isolated-worker foundation, but repeated review and edge-case
+hardening consumed increasing effort before the complete operating-model
+experience existed. The project must decide whether architecture selection now
+depends on the original exhaustive adversarial proof or on a complete low-stakes
+vertical prototype that can be hardened through later measured iterations.
+
+#### Option 1: Complete the full adversarial proof before building the vertical slice
+
+Pros:
+
+- provides strong authority, race, recovery, and evidence-integrity guarantees
+  before the topology becomes the MVP substrate.
+
+Cons:
+
+- delays the first complete product experience;
+- encourages speculative hardening before real usage identifies the important
+  failure modes; and
+- risks turning the proof harness and inherited review machinery into the
+  product objective.
+
+#### Option 2: Build the complete low-stakes happy-path vertical slice first
+
+Pros:
+
+- makes the intended voice-first primary-and-team experience observable end to
+  end;
+- tests every defining workflow stage on one bounded real coding outcome; and
+- lets later race, recovery, security, and correctness hardening respond to
+  measured failures and real operational evidence.
+
+Cons:
+
+- does not establish robust authority or fault-tolerance guarantees; and
+- requires the prototype and its reports to state a deliberately narrow claim.
+
+#### Option 3: Accept the partial Phase 1-4 proof as sufficient
+
+Pros:
+
+- permits immediate implementation progress with no further prototype work.
+
+Cons:
+
+- leaves the defining end-to-end operating experience untested; and
+- provides no evidence for asks, handoff, replacement, clean attempt restart,
+  or user-controlled integration.
+
+#### Decision
+
+Choose Option 2.
+
+The project will build one complete low-stakes vertical prototype before more
+adversarial infrastructure work. Normal-path functional correctness, visible
+failure, isolated execution, durable intent and artifacts, and explicit user
+authority for clean attempt restart and integration remain mandatory. Concurrent-writer races,
+hostile-client resistance, crash injection and automatic recovery, exhaustive
+protocol variants, and production hardening are deferred rather than treated as
+current acceptance gates.
+
+The earlier full proof plan and the later narrow plan are preserved as legacy
+evidence under `docs/darkline/authoritative-host-poc/`. Section 91 abandons
+their shared implementation direction. A fresh PoC still starts with a bounded
+happy-path claim, but must define its own acceptance narrative and architecture
+from first principles.
+
+### 87. ITD: natural-language meaning belongs to models, with asymmetric confirmation for high-stakes effects
+
+**Status:** Accepted by the user. This supersedes the prototype's finite
+`voice-approval-v1` grammar and program-owned semantic guard.
+
+#### Problem Statement
+
+The accountable primary must interpret the user's voice input, but a mistaken
+interpretation should not make the primary a single semantic failure point for
+restart or authoritative integration. Program code must not solve that problem
+by becoming a second natural-language authority.
+
+#### Option 1: Use the primary's interpretation alone
+
+Pros:
+
+- preserves the simplest conversational path; and
+- keeps semantic ownership entirely with the accountable primary.
+
+Cons:
+
+- one model interpretation can directly authorize a high-stakes effect.
+
+#### Option 2: Independently confirm only a positive high-stakes interpretation
+
+The primary and an isolated prompt-only model independently interpret the exact
+pending proposal and verbatim user response. Program code compares their typed
+outputs but does not inspect the natural language itself.
+
+Pros:
+
+- reduces the primary's semantic single-point-of-failure risk;
+- preserves free-form voice interaction; and
+- incurs the second model call only on a potentially effectful branch.
+
+Cons:
+
+- adds latency and cost to positive high-stakes decisions; and
+- model errors may still be correlated, so agreement is risk reduction rather
+  than formal semantic proof.
+
+#### Option 3: Use a deterministic Python phrase grammar alongside the primary
+
+Pros:
+
+- produces a closed machine classification.
+
+Cons:
+
+- places semantic authority in the wrong layer;
+- makes voice interaction brittle; and
+- creates phrase, normalization, timing, reconciliation, and presentation
+  machinery unrelated to the core operating model.
+
+#### Decision
+
+Choose Option 2.
+
+Python and other deterministic program code must not infer meaning from
+natural text through phrase lists, normalization, keywords, regular expressions,
+substring tests, or prose markers. It may transport, persist, hash, redact, and
+frame verbatim text and may validate typed schemas, enums, identities, and state.
+
+A positive restart or authoritative-integration interpretation becomes eligible
+only when the independent model returns the same positive typed disposition for
+the exact proposal. Disagreement, invalid output, or verifier failure applies no
+effect and returns to the primary for clarification. A primary rejection or
+clarification is already a no-effect result and does not invoke the second
+model. Stakes attach to the resulting effect rather than the words
+`approve`/`reject`; any future nominal rejection with a destructive effect must
+be treated as high stakes.
+
+### 88. ITD: enforce transitions mechanically and validate at the earliest responsible phase
+
+**Status:** Accepted principle. This supersedes Section 47A's P01-P18 runtime
+proof architecture and terminal-auditor ownership. Its controller-specific
+realization is superseded by Section 91 and is not inherited by a fresh PoC.
+
+#### Problem Statement
+
+When a workflow transition is mechanically governed, its enforcement must
+prevent invalid transitions without making runtime validation a substitute for
+correct code or a parallel implementation that re-proves the complete workflow
+from manually assembled evidence.
+
+#### Option 1: Re-prove the complete workflow before each dependent stage
+
+Pros:
+
+- produces an explicit runtime result for every named obligation.
+
+Cons:
+
+- duplicates the transition implementation;
+- pushes code completeness into runtime; and
+- requires manually maintained evidence universes and enforcement call sites
+  that can themselves omit members.
+
+#### Option 2: Make governed transitions valid by construction and place each check at its earliest responsible phase
+
+Pros:
+
+- invalid typed transitions have no executable path;
+- static and initialization defects fail before user work begins; and
+- runtime checks remain limited to facts that exist only in the concrete run.
+
+Cons:
+
+- transition contracts and their call sites still require strong tests and
+  review; and
+- there is no separate runtime proof system to compensate for incorrect
+  enforcement code.
+
+#### Option 3: Trust agents during execution and verify only the final result
+
+Pros:
+
+- keeps deterministic machinery smallest.
+
+Cons:
+
+- dependent work or effects may occur before an invalid transition is noticed.
+
+#### Decision
+
+Choose Option 2.
+
+For each transition deliberately included in a bounded mechanical claim, one
+chosen owner is the only path for its governed state mutation or effect. That
+transition validates its typed actor, current state, exact referenced records,
+and required durable predecessors as part of the transition itself. There is no
+generic P-ID runtime validator or complete semantic end replay. Which transitions
+need mechanical ownership, and whether stock Codex or a small external component
+owns them, are reopened by Section 91.
+
+Responsibility is divided as follows:
+
+- build, test, and code review establish schemas, complete transition call-site
+  coverage, role permissions, candidate mechanics, and absence of program-owned
+  natural-language semantics;
+- initialization validates the migrations, external capabilities, repository
+  access, model availability, and filesystem boundaries the selected design
+  actually depends on;
+- runtime checks current state and identity, unresolved asks, concrete model and
+  command results, required high-stakes semantic confirmation, stale or
+  superseded objects, and exact candidate/base state; and
+- final validation and implementation closure check the product result, accepted
+  plan coverage, unresolved findings, reviewed candidate identity, and final Git
+  read-back.
+
+The final human report is a queryable summary of the durable project record and
+Git result. It is not a complete database projection, an executable provenance
+proof, a second semantic authority, or the owner of a special terminal PASS.
+
+### 89. Primary authority clarification: derived technical decisions are not a user interview
+
+**Status:** Accepted clarification of Sections 5 and 6.
+
+Once product intent, scope, authority, and genuine ITDs are settled, the primary
+owns the derived architecture and implementation decisions needed to carry them
+out. This includes validation-phase placement, whichever transition contracts
+and storage relationships the chosen design needs, test design, context packets,
+and implementation sequencing. The primary presents one coherent reviewed
+proposal rather than asking the user to decide each derived mechanism
+independently.
+
+The user remains the authority for genuine product/scope choices, changes to an
+explicit user value, difficult-to-reverse ITDs, execution rewind, authoritative
+integration, and final consolidated architecture acceptance.
+
+### 90. Candidate MVP architecture after the proof-harness reset
+
+**Status:** Superseded by Section 91. Preserved as the final reviewed design of
+the abandoned PoC, not as an active candidate architecture. The detailed
+artifact is archived at `docs/darkline/authoritative-host-poc/PLAN.md`.
+
+The replacement plan preserves the accepted operating-model DNA while treating
+the prior phrase grammar, cue/occurrence proof protocol, P01-P18 runtime proof
+matrix, canonical full-database projection, complete executable provenance, and
+terminal PASS owner as exploration history rather than product requirements.
+
+Its bounded vertical slice contains:
+
+- one voice-facing accountable logical primary and bounded internal role agents;
+- compact primary-initiated checkpoints, proactive agent inflection reports,
+  dependency-scoped asks, planned worker replacement, and durable re-priming;
+- separate user authorities for accepting a revised product constraint and for
+  rewinding the implementation attempt;
+- an independent root assessor that evaluates the accepted evolving restart
+  predicates, followed by a separate primary-owned recommendation and explicit
+  user rewind authority;
+- free-form model-owned semantics, with independent model confirmation only for
+  positive restart/integration effects and no deterministic text interpretation;
+- a semantic-free presentation boundary under which a high-stakes response can
+  bind only after the exact proposal is fully rendered in the current
+  presentation, with detach requiring complete re-presentation;
+- a primary-owned relational SQLite ledger, one physical controller writer,
+  Git-owned immutable candidates, candidate-bound findings, and exact
+  attempt-base review/integration identity;
+- independent soundness/adversarial plan review, iterative correctness and
+  cohesion code review, one fresh native Codex hard-review discovery pass,
+  product validation, and plan-to-code closure;
+- one recovery-oriented attention summary for attached and reattached waiting,
+  blocked, failed, or incomplete states; and
+- a post-run review of the then-pending authoritative-host ITD using the PoC
+  evidence rather than relabeling a local implementation choice as an ITD.
+
+The slice deliberately does not claim production hardening, hostile-client or
+concurrent-writer safety, crash recovery, exactly-once effects, exhaustive race
+proof, the full project-brain/inbox surface, automated finding-pattern analysis,
+backtesting evaluation, or model/cost optimization.
+
+### 91. ITD: archive the failed authoritative-host PoC and restart without its code
+
+**Status:** Accepted by the user on 2026-08-13.
+
+#### Problem Statement
+
+The authoritative-host PoC repeatedly produced new blocking findings after
+large repair and review passes. Its architecture had grown far beyond the
+low-stakes product experience it was meant to prove. The project must decide
+whether to continue from that implementation, preserve it as reusable code, or
+retain only its durable learning and restart from first principles.
+
+#### Option 1: Continue repairing the existing implementation
+
+Pros:
+
+- preserves all implementation effort; and
+- allows each currently known finding to be addressed locally.
+
+Cons:
+
+- repeats the site-by-site repair strategy that failed to converge;
+- keeps the next design anchored to a 60-table, multi-owner runtime; and
+- spends more effort proving the control plane than proving the user
+  experience.
+
+#### Option 2: Archive the implementation as reusable reference code
+
+Pros:
+
+- makes individual probes, adapters, schemas, and tests available for copying;
+  and
+- retains a runnable record of the experiment.
+
+Cons:
+
+- creates a strong path for accidental architectural inheritance;
+- lets apparently useful local components silently bring back their old state
+  and authority assumptions; and
+- preserves failed code as an attractive default instead of a falsified
+  attempt.
+
+#### Option 3: Preserve decisions, research, plans, findings, and distilled learning; delete all PoC code
+
+Pros:
+
+- retains the evidence needed to avoid rediscovery;
+- removes implementation anchoring and makes a genuinely fresh architecture
+  possible;
+- keeps user-settled operating invariants separate from failed mechanisms; and
+- makes the next PoC free to choose a smaller scope, different Codex surface,
+  and different implementation language.
+
+Cons:
+
+- any genuinely useful low-level adapter or probe must be recreated if later
+  evidence justifies it; and
+- the old experiment can no longer be executed or debugged after deletion.
+
+#### Decision
+
+Choose Option 3.
+
+The repository preserves the complete interview-derived operating-model record,
+the final and earlier hardening Plans, the chronological review ledger, exact
+provenance hashes, and a distilled legacy-learning handoff under
+`docs/darkline/authoritative-host-poc/`. The disposable implementation,
+fixtures, prompts, tests, vendored dependencies, binaries, and worktree are not
+retained. The abandoned branch has no unique implementation commit and is
+deleted with the worktree after the documentary checkpoint is secured.
+
+Future work may inherit user-settled goals and invariants only. Codex/App Server
+observations are version-sensitive research to reverify. No schema, class,
+transition, prompt, test, or controller architecture from the discarded PoC is
+the default starting point.
+
+This decision does not select the next implementation language. Python was a
+useful exploration tool and an amplifier of the eventual concurrency and
+ownership problems, not their root cause. Language selection follows the fresh
+PoC's bounded claim and ownership design.
 
 ## Later Design Areas
 
 These have not yet been decided:
 
-- control-plane code distribution and placement;
+- placement of any non-native orchestration code;
 - per-project SQLite and artifact-store placement, versioning, backup, and
   export;
 - SQLite's schema, journaling and interaction interface;
@@ -2228,9 +2806,9 @@ These have not yet been decided:
   idempotency semantics;
 - policy for unavoidable external execution side effects;
 - initial restart-predicate calibration and its amendment process;
-- deterministic workflow-engine boundaries and triggers;
+- boundaries and triggers for any deterministic enforcement the chosen design
+  actually needs;
 - progress reporting and escalation behavior;
 - the final file name and structure of the chronological ITD log;
-- archival location for the ITD reference transcript; and
 - how the new operating model maps to Codex instructions, agents, skills,
   configuration, hooks, or tools.
