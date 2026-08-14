@@ -1,81 +1,79 @@
 #!/usr/bin/env bash
-#
-# Install (or refresh) claude-setup symlinks into ~/.claude.
-# Idempotent — safe to re-run after pulls or structural changes.
-#
-# Links each expected item from this repo into ~/.claude. If the target
-# already exists as a symlink (pointing anywhere), it is replaced. If the
-# target exists as a real file or directory, the link is skipped with a
-# warning so the user can resolve manually rather than losing local state.
 
 set -euo pipefail
 
 SETUP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="${HOME}/.claude"
+CHECK_ONLY=0
 
-if [[ -f "${SETUP_ROOT}/scripts/generate-surfaces.py" ]]; then
-  if ! command -v python3 >/dev/null 2>&1; then
-    echo "ERROR python3 is required to validate generated agent surfaces" >&2
-    exit 1
-  fi
-  python3 "${SETUP_ROOT}/scripts/generate-surfaces.py" --check
+if [[ "${1:-}" == "--check" ]]; then
+  CHECK_ONLY=1
+  shift
 fi
 
-mkdir -p "$CLAUDE_DIR"
+if [[ $# -gt 0 ]]; then
+  echo "Usage: install.sh [--check]" >&2
+  exit 2
+fi
 
-# Items to link from repo root into ~/.claude. Both files and directories
-# use `ln -sfn` which handles either cleanly.
-ITEMS=(
-  "CLAUDE.md"
-  "vocabulary.md"
-  "roles"
-  "agents"
-  "contracts"
-  "policies"
-  "playbooks"
-  "sidekick-prompts"
-)
-
-linked=0
-relinked=0
-skipped=0
-missing=0
-
-for item in "${ITEMS[@]}"; do
-  src="${SETUP_ROOT}/${item}"
-  dst="${CLAUDE_DIR}/${item}"
-
-  if [[ ! -e "$src" ]]; then
-    echo "skip  ${item} (not present in repo)"
-    missing=$((missing + 1))
-    continue
-  fi
-
-  if [[ -L "$dst" ]]; then
-    current="$(readlink "$dst")"
-    if [[ "$current" == "$src" ]]; then
-      echo "ok    ${item}"
-    else
-      ln -sfn "$src" "$dst"
-      echo "relink ${item} (was -> ${current})"
-      relinked=$((relinked + 1))
-    fi
-  elif [[ -e "$dst" ]]; then
-    echo "WARN  ${item} exists in ~/.claude as a real file/directory; not overwriting" >&2
-    skipped=$((skipped + 1))
+required=("CLAUDE.md" "agents/reviewer.md" "agents/verifier.md")
+for item in "${required[@]}"; do
+  if [[ -f "${SETUP_ROOT}/${item}" ]]; then
+    echo "check ${item}"
   else
-    ln -sfn "$src" "$dst"
-    echo "link  ${item}"
-    linked=$((linked + 1))
+    echo "ERROR missing ${item}" >&2
+    exit 1
   fi
 done
 
-echo
-echo "linked: ${linked}  relinked: ${relinked}  skipped: ${skipped}  missing: ${missing}"
+if (( CHECK_ONLY == 1 )); then
+  echo "validation ok"
+  exit 0
+fi
+
+remove_legacy_link() {
+  local target="$1"
+  local old_source="$2"
+  local label="$3"
+
+  if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$old_source" ]]; then
+    unlink "$target"
+    echo "unlink legacy ${label}"
+  fi
+}
+
+for item in vocabulary.md roles agents contracts policies playbooks sidekick-prompts; do
+  remove_legacy_link "${CLAUDE_DIR}/${item}" "${SETUP_ROOT}/${item}" "${CLAUDE_DIR}/${item}"
+done
+
+mkdir -p "${CLAUDE_DIR}/agents"
+
+skipped=0
+link_item() {
+  local source="$1"
+  local target="$2"
+  local label="$3"
+
+  if [[ -L "$target" ]]; then
+    if [[ "$(readlink "$target")" == "$source" ]]; then
+      echo "ok    ${label}"
+    else
+      ln -sfn "$source" "$target"
+      echo "relink ${label}"
+    fi
+  elif [[ -e "$target" ]]; then
+    echo "WARN  ${label} is a real file; not overwriting" >&2
+    skipped=$((skipped + 1))
+  else
+    ln -s "$source" "$target"
+    echo "link  ${label}"
+  fi
+}
+
+link_item "${SETUP_ROOT}/CLAUDE.md" "${CLAUDE_DIR}/CLAUDE.md" "CLAUDE.md"
+link_item "${SETUP_ROOT}/agents/reviewer.md" "${CLAUDE_DIR}/agents/reviewer.md" "agents/reviewer.md"
+link_item "${SETUP_ROOT}/agents/verifier.md" "${CLAUDE_DIR}/agents/verifier.md" "agents/verifier.md"
 
 if (( skipped > 0 )); then
-  echo
-  echo "One or more targets in ~/.claude exist as real files/directories."
-  echo "Remove them manually and re-run this script to complete the install."
   exit 1
 fi

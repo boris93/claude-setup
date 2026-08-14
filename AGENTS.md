@@ -1,13 +1,15 @@
-# claude-setup Repo Instructions
+# cli-code-setup Repository
 
-This repo maintains shared agent setup for Claude Code and Codex.
+This repository maintains a small Codex-primary operating setup with a minimal
+Claude compatibility surface.
 
-- Canonical reusable role definitions live in `roles/*.md`.
-- Generated runtime surfaces live in `agents/*.md` for Claude and
-  `.agents/skills/*` for Codex.
-- Do not hand-edit generated files. Edit `roles/*.md`, then run
-  `scripts/generate-surfaces.py`.
-- Validate generated surfaces before installing with
-  `scripts/generate-surfaces.py --check`.
-- The global Codex instruction file lives at `codex/AGENTS.md` and is symlinked
-  to `${CODEX_HOME:-~/.codex}/AGENTS.md` by `install-codex.sh`.
+- `codex/AGENTS.md` is the global Codex instruction file.
+- `codex/agents/*.toml` are the only custom Codex agents.
+- `CLAUDE.md` and `agents/*.md` provide the equivalent Claude surface.
+- Runtime files are intentionally direct and hand-maintained. Do not introduce
+  generators, shared contract layers, or new roles unless repeated real work
+  proves they are necessary.
+- Keep Codex and Claude behavior aligned when changing a shared principle.
+- Treat `NEW_CODEX_OPERATING_MODEL.md` and `docs/darkline/` as historical design
+  evidence, not runtime instructions.
+- Validate shell syntax and run both installers in check mode after changes.

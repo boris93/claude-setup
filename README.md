@@ -1,124 +1,84 @@
-# Codex / Claude Setup
+# Codex-Primary Setup
 
-Codex-primary, Claude-compatible coding-agent configuration: layered
-principles, shared contracts and policies, persona playbooks, canonical role
-definitions, generated Codex skill adapters, and generated Claude Code
-subagents.
+A deliberately small operating setup for one accountable primary agent with
+native subagents and proportional review. It is designed for current Codex
+capabilities and keeps a minimal Claude compatibility surface.
 
-## Structure
+The active setup is intentionally boring:
 
-```
-AGENTS.md                     # Repo-local Codex instructions for maintaining this setup repo.
-codex/AGENTS.md               # Primary Codex L1 cross-cutting principles, adapted to
-                              #   Codex's explicit file loading and skill mechanisms.
-CLAUDE.md                     # Claude-compatible L1 principles. Imports L2 via @-syntax.
-contracts/                    # L2 — shapes of artifacts flowing between agents
-  finding.md                  #   finding shape (severity × scope tags, required fields)
-  scope-block.md              #   Problem / In scope / Out of scope shape
-  plan.md                     #   plan artifact shape (scope block + plan altitude + site list +
-                              #     conditional temporal composition)
-  plan-review-receipt.md      #   ignored repo-local GREEN closure marker for a reviewed plan/RFC
-  code-change.md              #   code change artifact shape (scope block + diff + context)
-  review-ledger.md            #   cumulative review history for resolution and convergence
-  rfc-implementation-closure.md # final RFC-to-code traceability closure
-policies/                     # L2 — shared behavioral rules across roles
-  synthesis.md                #   routing matrix, output precedence, deferred capture
-  scope-discipline.md         #   scope-tagging obligations, scope-change requests, anti-patterns
-  contract-enforcement.md     #   orchestrator = sole gate; reviewers trust the gate
-vocabulary.md                 # L2 — shared glossary (composition blindness, default-by-omission,
-                              #   sibling shapes, altitude, double-loop, contract vs policy vs vocab)
-roles/                        # Canonical model-neutral role definitions and surface metadata
-playbooks/                    # L3 — persona-specific procedures, loaded on-demand
-  orchestrator.md             #   Plan Review Flow + Code Review Flow (owns contract enforcement)
-  planner.md                  #   plan mode protocol, plan completeness test, authoring guidance
-  implementer.md              #   implementation discipline, commit gating
-.agents/skills/               # Generated Codex skill adapters (do not edit directly)
-agents/                       # Generated Claude Code subagents (do not edit directly)
-  rfc-reviewer.md             #   structured plan audit (soundness)
-  rfc-red-team.md             #   adversarial plan scenarios (robustness)
-  rfc-minimizer.md            #   plan minimality audit (subtractive findings, post-convergence)
-  rfc-implementation-verifier.md # final RFC-to-code closure
-  code-review-analyst.md      #   implementation-quality review
-  ux-reviewer.md              #   user-facing flows through persona lenses
-  security-researcher.md      #   attack surface decomposition
-  review-convergence-analyst.md # pre-fix resolution challenge + convergence diagnosis
-sidekick-prompts/             # Reusable prompts (gating-review.md)
-scripts/generate-surfaces.py  # Generates agents/ and .agents/skills/ from roles/
+```text
+codex/AGENTS.md             primary Codex operating loop
+codex/agents/reviewer.toml  independent plan or code review
+codex/agents/verifier.toml  final request or plan-to-code closure
+CLAUDE.md                   equivalent Claude operating loop
+agents/reviewer.md          Claude reviewer
+agents/verifier.md          Claude verifier
+install-codex.sh            Codex installer and check
+install.sh                  Claude installer
 ```
 
-### Layer discipline
+There are no workflow state machines, review ledgers, artifact contracts,
+generated role adapters, or mandatory multi-phase gates. Codex already owns
+agent spawning, steering, waiting, permissions, and result collection. This
+repository adds only the behavioral defaults that remain useful across projects.
 
-- **Contract** = shape of an artifact that flows between agents. Enforced at boundaries (the orchestrator gate).
-- **Policy** = behavioral rule within or across roles. Self-policed within the role.
-- **Vocabulary** = shared definition that neither prescribes behavior nor specifies a shape.
+## Operating model
 
-See `vocabulary.md` for the full decomposition and how to decide where a new rule lives.
+- The user talks to one primary; subagents remain an internal team.
+- Voice-like input is synthesized into a usable brief by the primary.
+- Workspace evidence is gathered before interpretation when it can answer the
+  question.
+- Clear action requests proceed without a redundant confirmation.
+- Planning and validation scale with risk and change size.
+- Native explorer and worker agents handle bounded discovery and implementation.
+- The custom reviewer and verifier provide independent quality checks only when
+  the work warrants them.
+- Repeated review findings trigger scope or design reassessment instead of more
+  process machinery.
 
-### Generated surfaces
-
-`roles/*.md` is the source of truth for reusable reviewer roles. The generated
-runtime surfaces are:
-
-- `.agents/skills/*` for Codex skills.
-- `agents/*.md` for Claude Code subagents.
-
-After editing `roles/*.md`, regenerate and validate:
-
-```bash
-scripts/generate-surfaces.py
-scripts/generate-surfaces.py --check
-```
-
-Both installers run `scripts/generate-surfaces.py --check` and fail if the
-generated surfaces are stale.
-
-## Codex Usage
-
-Clone and run the Codex installer from the repo root:
+## Codex installation
 
 ```bash
 git clone git@github.com:boris93/cli-code-setup.git ~/projects/cli-code-setup
 ~/projects/cli-code-setup/install-codex.sh
 ```
 
-For fresh machines or CI-style checks, validate without installing:
+The installer links `codex/AGENTS.md` to
+`${CODEX_HOME:-~/.codex}/AGENTS.md` and the two custom agents into
+`${CODEX_HOME:-~/.codex}/agents/`. It does not overwrite real files.
+
+Validate without changing the installed setup:
 
 ```bash
-~/projects/cli-code-setup/install-codex.sh --check
-~/projects/cli-code-setup/install-codex.sh --dry-run
+./install-codex.sh --check
+./install-codex.sh --dry-run
 ```
 
-The Codex installer first checks that generated surfaces are current, then
-symlinks `codex/AGENTS.md` to `${CODEX_HOME:-~/.codex}/AGENTS.md` and symlinks
-`vocabulary.md`, `roles/`, `agents/`, `contracts/`, `policies/`, `playbooks/`,
-and `sidekick-prompts/` into `${CODEX_HOME:-~/.codex}`. It also symlinks each
-Codex skill adapter from `.agents/skills/` into `~/.agents/skills/`.
-
-Codex then picks up the global `AGENTS.md` on startup and exposes the role
-adapters as skills such as `$rfc-reviewer`, `$rfc-red-team`,
-`$rfc-implementation-verifier`, `$code-review-analyst`, `$ux-reviewer`,
-`$security-researcher`, `$review-convergence-analyst`, and `$gating-review`.
-
-## Claude Usage
-
-Claude Code remains a supported compatibility surface. Clone and run its
-installer from the repo root:
+## Claude installation
 
 ```bash
-git clone git@github.com:boris93/cli-code-setup.git ~/projects/cli-code-setup
 ~/projects/cli-code-setup/install.sh
 ```
 
-The installer first checks that generated surfaces are current, then symlinks
-`CLAUDE.md`, `vocabulary.md`, `roles/`, `agents/`, `contracts/`,
-`policies/`, `playbooks/`, and `sidekick-prompts/` into `~/.claude`. It is
-idempotent — re-run it after `git pull` whenever the repo's structure changes
-(new directories, renamed files). Existing correct symlinks are left alone;
-stale symlinks are updated. A real file or directory blocking a target is
-reported but never overwritten.
+This links `CLAUDE.md` and the two agent files into `~/.claude`. Validate the
+source files without changing the installed setup with `./install.sh --check`.
 
-Claude Code picks these up automatically across all projects once the symlinks
-are in place.
+Both installers remove only legacy symlinks that point back into this checkout;
+they do not delete real files or unrelated custom agents.
+
+## Historical design evidence
+
+[`NEW_CODEX_OPERATING_MODEL.md`](NEW_CODEX_OPERATING_MODEL.md) preserves the
+voice-first operating-model interview and settled product intent. The
+[`docs/darkline/authoritative-host-poc`](docs/darkline/authoritative-host-poc)
+archive records the abandoned controller PoC, its evidence, and why its
+architecture must not be resumed. Neither is loaded as runtime instruction.
+
+## Maintenance rule
+
+Add a persistent rule or another custom agent only after repeated real work
+shows that the primary model plus the current two agents cannot handle the need
+reliably. Prefer a short direct instruction over a new layer or framework.
 
 ## License
 
