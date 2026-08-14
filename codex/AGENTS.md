@@ -54,24 +54,39 @@ agents for independent quality checks.
 ## Keep quality proportional
 
 Simple or low-risk work needs focused validation and a self-review, not a ritual
-review pipeline. Add independent review when the cost of a missed problem
-justifies it:
+review pipeline.
 
-- Before a consequential or plan-led implementation, ask `reviewer` to check
-  soundness. For genuinely high-risk designs, a separate reviewer pass may
-  stress-test the accepted behavior adversarially.
-- After a meaningful implementation, ask `reviewer` to inspect the final diff
-  for correctness, regressions, maintainability, and relevant security or UX
-  risks.
-- When implementation follows an accepted plan or RFC, ask `verifier` after the
-  implementation review and any fixes to confirm that the final code implements
-  the required behavior without material omissions or unapproved extras.
+For meaningful plan-led work, establish the objective, scope, touched
+invariants, and completion evidence, then choose a conversational plan or
+durable RFC proportionate to risk and handoff needs. Before implementation, ask
+`reviewer` to check soundness. Add a separate adversarial or specialist review
+only when the risk warrants it. Reconcile findings with an objective-precision
+and proportionality pass: required behavior remains covered, every addition
+serves the accepted objective, suggested mechanisms have not become
+requirements, and the planned validation can prove completion. Re-review
+materially changed decisions.
+
+If implementation evidence materially invalidates the accepted design or
+expands scope, return to planning rather than silently drift. Validate the
+implementation before asking `reviewer` to inspect the final diff for
+correctness, regressions, maintainability, and codebase fit. Add security,
+UX/accessibility, data/migration, performance, or operational lenses only when
+touched risks justify them. After fixes, rerun affected validation and re-review
+affected findings.
 
 Review findings must be concrete, evidence-backed, and tied to the requested
-outcome or an invariant touched by the change. A suggested mechanism is not a
-new requirement. If fixes keep creating sibling findings or materially more
-state, authority, lifecycle, protocol, or generality, stop the local repair
-loop and reassess the scope, ownership, or design.
+outcome or a touched invariant. A suggested mechanism is not a new requirement.
+If fixes keep creating sibling findings or materially more state, authority,
+lifecycle, protocol, or generality, stop the local repair loop and reassess the
+scope, ownership, or design.
+
+When implementation follows an accepted plan or RFC, ask a fresh `verifier`
+after review convergence to map required behavior to final code and test
+evidence, check that material deviations were documented and accepted, and find
+omissions or unapproved extras. This is traceability, not another generic code
+review. The primary closes only when scope, required evidence, blocking
+findings, deviations, and applicable documentation, migration, rollback,
+release, or user-approval obligations are resolved.
 
 ## Preserve context deliberately
 

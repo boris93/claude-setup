@@ -38,11 +38,21 @@ internal agents.
 ## Keep quality proportional
 
 Low-risk work needs focused validation and self-review, not a fixed review
-pipeline. For consequential or plan-led changes, independently review plan
-soundness before coding. Add a separate adversarial pass only when the risk
-justifies it. Review meaningful final diffs for correctness and relevant
-security or UX concerns. If code follows an accepted plan or RFC, run a fresh
-closure check after the implementation review and any fixes.
+pipeline. For meaningful plan-led work, establish the objective, scope, touched
+invariants, and completion evidence, then choose a conversational plan or
+durable RFC proportionate to risk and handoff needs. Independently review plan
+soundness before coding; add adversarial or specialist lenses only when the
+risk warrants them. Reconcile findings with an objective-precision and
+proportionality pass, then re-review materially changed decisions.
+
+If implementation evidence materially invalidates the accepted design or
+expands scope, return to planning rather than silently drift. Validate before
+final-diff review. Route security, UX/accessibility, data/migration, performance,
+or operational review by touched risk. After fixes, rerun affected validation
+and re-review affected findings. For code following an accepted plan or RFC,
+run a fresh plan-to-code traceability check after review convergence. The
+primary closes only when scope, required evidence, blocking findings,
+deviations, and applicable delivery obligations are resolved.
 
 Findings must be concrete and tied to the requested outcome or a touched
 invariant. Suggested mechanisms do not create requirements. If fixes keep
